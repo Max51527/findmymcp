@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MCPCard from '../../components/MCPCard.astro';
+import { allCategories, getMCPsByCategory } from '../../lib/mcps';
+
+export function getStaticPaths() {
+  return allCategories.map((cat) => ({
+    params: { slug: cat.slug },
+    props: { cat },
+  }));
+}
+
+const { cat } = Astro.props;
+const mcps = getMCPsByCategory(cat.slug).sort((a, b) => {
+  if (a.sponsored !== b.sponsored) return b.sponsored ? 1 : -1;
+  if (a.featured !== b.featured) return b.featured ? 1 : -1;
+  return b.github_stars - a.github_stars;
+});
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: `MCP servers — ${cat.nom}`,
+  url: `https://findmymcp.fr/categorie/${cat.slug}`,
+  description: cat.description,
+};
+---
+
+<BaseLayout
+  title={`${cat.nom} : ${mcps.length} MCP servers`}
+  description={`${cat.description} — ${mcps.length} MCP servers indexés et classés.`}
+  schema={schema}
+>
+  <section class="container-wide py-12 md:py-16">
+    <p class="text-sm text-slate-400 mb-2">
+      <a href="/annuaire" class="hover:text-accent-400">← Annuaire</a>
+    </p>
+    <h1 class="text-3xl md:text-4xl font-bold mb-3">{cat.nom}</h1>
+    <p class="text-slate-300 mb-8 max-w-2xl">{cat.description}</p>
+
+    {mcps.length === 0 ? (
+      <div class="rounded-lg border border-dashed border-slate-700 p-12 text-center text-slate-400">
+        Aucun MCP dans cette catégorie pour le moment.
+        <br />
+        <a href="/soumettre" class="text-accent-400 hover:underline">Proposez le premier !</a>
+      </div>
+    ) : (
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {mcps.map((mcp) => <MCPCard mcp={mcp} />)}
+      </div>
+    )}
+  </section>
+</BaseLayout>

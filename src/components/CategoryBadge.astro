@@ -1,0 +1,25 @@
+---
+import { getCategoryBySlug } from '../lib/mcps';
+
+interface Props {
+  slug: string;
+  link?: boolean;
+}
+
+const { slug, link = true } = Astro.props;
+const cat = getCategoryBySlug(slug);
+const label = cat?.nom ?? slug;
+---
+
+{link ? (
+  <a
+    href={`/categorie/${slug}`}
+    class="inline-flex items-center rounded-full bg-slate-800 px-2.5 py-0.5 text-xs font-medium text-slate-300 hover:bg-accent-500 hover:text-white transition-colors"
+  >
+    {label}
+  </a>
+) : (
+  <span class="inline-flex items-center rounded-full bg-slate-800 px-2.5 py-0.5 text-xs font-medium text-slate-300">
+    {label}
+  </span>
+)}

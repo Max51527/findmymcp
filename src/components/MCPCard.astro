@@ -1,0 +1,39 @@
+---
+import type { MCP } from '../lib/mcps';
+import CategoryBadge from './CategoryBadge.astro';
+
+interface Props {
+  mcp: MCP;
+}
+
+const { mcp } = Astro.props;
+---
+
+<a
+  href={`/mcp/${mcp.slug}`}
+  class="group flex flex-col h-full rounded-xl border border-slate-800 bg-slate-900/50 p-5 transition-colors hover:border-accent-500 hover:bg-slate-900"
+>
+  <div class="flex items-start justify-between gap-3 mb-3">
+    <h3 class="font-semibold text-slate-100 group-hover:text-accent-400 leading-tight">
+      {mcp.nom}
+    </h3>
+    <div class="flex shrink-0 gap-1.5">
+      {mcp.featured && <span class="rounded-full bg-accent-500/20 px-2 py-0.5 text-xs font-medium text-accent-400">★</span>}
+      {mcp.sponsored && <span class="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-400">Sponso</span>}
+      {mcp.verified && <span class="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-400" title="Vérifié manuellement">✓</span>}
+    </div>
+  </div>
+
+  <p class="text-sm text-slate-400 leading-relaxed mb-4 line-clamp-3 flex-1">
+    {mcp.description_fr}
+  </p>
+
+  <div class="flex flex-wrap gap-1.5 mb-3">
+    {mcp.categorie.slice(0, 2).map((c) => <CategoryBadge slug={c} />)}
+  </div>
+
+  <div class="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-800">
+    <span class="font-mono">{mcp.langage}</span>
+    <span class="font-mono">{mcp.licence}</span>
+  </div>
+</a>

@@ -1,0 +1,15 @@
+name = "findmymcp-scraper"
+main = "src/index.ts"
+compatibility_date = "2026-05-01"
+
+[triggers]
+crons = ["0 4 * * 1"]  # lundi 04h00 UTC
+
+[[d1_databases]]
+binding = "DB"
+database_name = "findmymcp-db"
+database_id = "to-fill-after-creation"
+
+# Secrets (set via `wrangler secret put`):
+# - GITHUB_TOKEN
+# - ANTHROPIC_API_KEY

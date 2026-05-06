@@ -1,0 +1,17 @@
+name = "findmymcp"
+compatibility_date = "2026-05-01"
+pages_build_output_dir = "dist"
+
+[vars]
+PUBLIC_SITE_URL = "https://findmymcp.fr"
+
+# === D1 binding (created in T1 deploy) ===
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "findmymcp-db"
+# database_id = "to-fill-after-creation"
+
+# === KV binding ===
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "to-fill-after-creation"

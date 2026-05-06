@@ -1,0 +1,62 @@
+[
+  {
+    "slug": "productivity",
+    "nom": "Productivité",
+    "description": "Notion, Asana, Linear, gestion de tâches, collaboration."
+  },
+  {
+    "slug": "communication",
+    "nom": "Communication",
+    "description": "Slack, Discord, email, messagerie d'équipe."
+  },
+  {
+    "slug": "dev-tools",
+    "nom": "Outils développeur",
+    "description": "GitHub, GitLab, Sentry, observabilité, CI/CD."
+  },
+  {
+    "slug": "data-analytics",
+    "nom": "Données & analytics",
+    "description": "PostgreSQL, BigQuery, ClickHouse, requêtes SQL."
+  },
+  {
+    "slug": "cloud-infra",
+    "nom": "Cloud & infrastructure",
+    "description": "AWS, Cloudflare, GCP, déploiement, IaC."
+  },
+  {
+    "slug": "design",
+    "nom": "Design",
+    "description": "Figma, Canva, génération d'images, UI."
+  },
+  {
+    "slug": "ai-llm",
+    "nom": "IA & LLM",
+    "description": "Connexions vers d'autres LLMs, embeddings, vector stores."
+  },
+  {
+    "slug": "automation",
+    "nom": "Automatisation",
+    "description": "n8n, Make, Zapier, workflows."
+  },
+  {
+    "slug": "browser-web",
+    "nom": "Navigateur & web",
+    "description": "Puppeteer, Playwright, scraping, fetch web."
+  },
+  {
+    "slug": "filesystem",
+    "nom": "Fichiers & stockage",
+    "description": "Local filesystem, Google Drive, Dropbox, S3."
+  },
+  {
+    "slug": "knowledge-management",
+    "nom": "Gestion de connaissance",
+    "description": "Bases de connaissance, recherche sémantique, wiki."
+  },
+  {
+    "slug": "misc",
+    "nom": "Divers",
+    "description": "MCPs qui ne rentrent dans aucune autre catégorie."
+  }
+]

@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: theme('colors.slate.950');
+    color: theme('colors.slate.100');
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background-color: theme('colors.accent.500');
+    color: white;
+  }
+
+  code,
+  pre,
+  kbd,
+  samp {
+    font-family: 'JetBrains Mono', Menlo, Monaco, monospace;
+  }
+
+  pre {
+    @apply rounded-lg bg-slate-900 border border-slate-800 p-4 overflow-x-auto text-sm;
+  }
+
+  :not(pre) > code {
+    @apply rounded bg-slate-800 px-1.5 py-0.5 text-sm text-accent-400;
+  }
+
+  a {
+    @apply transition-colors;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors;
+  }
+
+  .btn-primary {
+    @apply btn bg-accent-500 text-white hover:bg-accent-600;
+  }
+
+  .btn-ghost {
+    @apply btn border border-slate-700 text-slate-200 hover:bg-slate-800;
+  }
+
+  .container-prose {
+    @apply mx-auto max-w-3xl px-4;
+  }
+
+  .container-wide {
+    @apply mx-auto max-w-6xl px-4;
+  }
+}

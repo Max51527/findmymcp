@@ -1,0 +1,53 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-24 border-t border-slate-800 bg-slate-950">
+  <div class="container-wide py-12 grid gap-8 md:grid-cols-4 text-sm">
+    <div>
+      <div class="font-bold text-base mb-3">FindMyMCP<span class="text-accent-400">.fr</span></div>
+      <p class="text-slate-400 leading-relaxed">
+        Annuaire francophone des MCP servers pour Claude et autres LLM compatibles. Indépendant, sans pub intrusive.
+      </p>
+    </div>
+
+    <div>
+      <div class="font-semibold text-slate-200 mb-3">Annuaire</div>
+      <ul class="space-y-2 text-slate-400">
+        <li><a href="/annuaire" class="hover:text-accent-400">Tous les MCPs</a></li>
+        <li><a href="/categorie/dev-tools" class="hover:text-accent-400">Outils dev</a></li>
+        <li><a href="/categorie/productivity" class="hover:text-accent-400">Productivité</a></li>
+        <li><a href="/categorie/data-analytics" class="hover:text-accent-400">Données</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="font-semibold text-slate-200 mb-3">Communauté</div>
+      <ul class="space-y-2 text-slate-400">
+        <li><a href="/soumettre" class="hover:text-accent-400">Soumettre un MCP</a></li>
+        <li><a href="/rss.xml" class="hover:text-accent-400">Flux RSS</a></li>
+        <li><a href="https://github.com/forgekit/findmymcp" rel="noopener" class="hover:text-accent-400">GitHub</a></li>
+        <li><a href="mailto:retrait@findmymcp.fr" class="hover:text-accent-400">Demander retrait</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="font-semibold text-slate-200 mb-3">Légal</div>
+      <ul class="space-y-2 text-slate-400">
+        <li><a href="/mentions-legales" class="hover:text-accent-400">Mentions légales</a></li>
+        <li><a href="/confidentialite" class="hover:text-accent-400">Confidentialité</a></li>
+        <li><a href="/a-propos" class="hover:text-accent-400">À propos</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="border-t border-slate-800">
+    <div class="container-wide py-6 text-xs text-slate-500 leading-relaxed">
+      <p>
+        © {year} FindMyMCP. Site indépendant, <strong>non affilié</strong> à Anthropic.
+        « Claude » et « MCP / Model Context Protocol » sont des marques/standards d'Anthropic PBC.
+        Les MCP listés conservent leurs licences respectives. Données publiées sous CC-BY 4.0.
+      </p>
+    </div>
+  </div>
+</footer>

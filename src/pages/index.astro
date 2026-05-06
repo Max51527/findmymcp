@@ -1,0 +1,121 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import MCPCard from '../components/MCPCard.astro';
+import { allMCPs, allCategories, getFeaturedMCPs, getStats } from '../lib/mcps';
+
+const featured = getFeaturedMCPs();
+const recent = [...allMCPs]
+  .sort((a, b) => b.date_ajout.localeCompare(a.date_ajout))
+  .slice(0, 6);
+const stats = getStats();
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'FindMyMCP',
+  url: 'https://findmymcp.fr',
+  inLanguage: 'fr-FR',
+  description: 'Annuaire francophone des MCP servers pour Claude et autres LLM.',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: 'https://findmymcp.fr/annuaire?q={search_term_string}',
+    'query-input': 'required name=search_term_string',
+  },
+};
+---
+
+<BaseLayout
+  title="FindMyMCP — Annuaire MCP servers en français"
+  description="Annuaire francophone gratuit des MCP servers (Model Context Protocol) pour Claude, Claude Code, Cursor et autres LLM. Description FR, cas d'usage concrets, install en 1 commande."
+  schema={schema}
+>
+  <section class="container-wide py-16 md:py-24">
+    <div class="max-w-3xl">
+      <p class="text-sm font-medium text-accent-400 mb-4 uppercase tracking-wider">
+        Annuaire francophone · {stats.total} MCP servers indexés
+      </p>
+      <h1 class="text-4xl md:text-6xl font-bold leading-[1.1] mb-6">
+        Trouvez le bon <span class="text-accent-400">MCP server</span><br />
+        pour Claude, en français.
+      </h1>
+      <p class="text-lg text-slate-300 leading-relaxed mb-8 max-w-2xl">
+        Le Model Context Protocol étend les LLM en leur donnant accès à vos outils.
+        Notion, GitHub, PostgreSQL, navigateur web et bien plus — installables en une commande.
+        Description FR, cas d'usage concrets, sans hype.
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <a href="/annuaire" class="btn-primary">
+          Explorer l'annuaire
+        </a>
+        <a href="/a-propos" class="btn-ghost">
+          Qu'est-ce qu'un MCP ?
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {featured.length > 0 && (
+    <section class="container-wide py-12 border-t border-slate-800">
+      <div class="flex items-end justify-between mb-8">
+        <div>
+          <h2 class="text-2xl md:text-3xl font-bold">À la une</h2>
+          <p class="text-slate-400 mt-1">Les MCP servers les plus utilisés ou recommandés.</p>
+        </div>
+      </div>
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {featured.map((mcp) => <MCPCard mcp={mcp} />)}
+      </div>
+    </section>
+  )}
+
+  <section class="container-wide py-12 border-t border-slate-800">
+    <div class="flex items-end justify-between mb-8">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-bold">Catégories</h2>
+        <p class="text-slate-400 mt-1">Parcourir par usage métier.</p>
+      </div>
+    </div>
+    <div class="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      {allCategories.map((cat) => {
+        const count = stats.byCat[cat.slug] ?? 0;
+        return (
+          <a
+            href={`/categorie/${cat.slug}`}
+            class="group rounded-xl border border-slate-800 bg-slate-900/50 p-4 hover:border-accent-500"
+          >
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-semibold text-slate-100 group-hover:text-accent-400">{cat.nom}</span>
+              <span class="text-xs font-mono text-slate-500">{count}</span>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed line-clamp-2">{cat.description}</p>
+          </a>
+        );
+      })}
+    </div>
+  </section>
+
+  <section class="container-wide py-12 border-t border-slate-800">
+    <div class="flex items-end justify-between mb-8">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-bold">Récemment ajoutés</h2>
+        <p class="text-slate-400 mt-1">Les derniers MCPs entrés dans l'annuaire.</p>
+      </div>
+      <a href="/annuaire" class="text-sm text-accent-400 hover:underline">Tout voir →</a>
+    </div>
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {recent.map((mcp) => <MCPCard mcp={mcp} />)}
+    </div>
+  </section>
+
+  <section class="container-wide py-16 border-t border-slate-800">
+    <div class="rounded-2xl border border-slate-800 bg-slate-900 p-8 md:p-12 text-center">
+      <h2 class="text-2xl md:text-3xl font-bold mb-3">Vous avez créé un MCP server ?</h2>
+      <p class="text-slate-300 mb-6 max-w-xl mx-auto">
+        Soumettez-le gratuitement à l'annuaire. Validation manuelle sous 7 jours.
+      </p>
+      <a href="/soumettre" class="btn-primary">
+        Soumettre un MCP →
+      </a>
+    </div>
+  </section>
+</BaseLayout>

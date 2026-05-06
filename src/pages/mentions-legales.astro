@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Mentions légales" description="Mentions légales du site FindMyMCP." noIndex={false}>
+  <article class="container-prose py-12 md:py-16 prose prose-invert prose-slate">
+    <h1>Mentions légales</h1>
+
+    <h2>Éditeur du site</h2>
+    <p>
+      <strong>forgekit</strong><br />
+      Auto-entrepreneur — SIREN à compléter<br />
+      Email : <a href="mailto:contact@findmymcp.fr">contact@findmymcp.fr</a>
+    </p>
+    <p class="text-sm text-slate-400">
+      <em>Ce site est édité à titre personnel et n'a aucun lien avec mes autres activités professionnelles.</em>
+    </p>
+
+    <h2>Hébergeur</h2>
+    <p>
+      <strong>Cloudflare, Inc.</strong><br />
+      101 Townsend St, San Francisco, CA 94107, USA<br />
+      Site : <a href="https://www.cloudflare.com" rel="noopener">cloudflare.com</a>
+    </p>
+
+    <h2>Propriété intellectuelle</h2>
+    <p>
+      Le code du site est publié sous licence <a href="https://github.com/forgekit/findmymcp/blob/main/LICENSE" rel="noopener">MIT</a>.
+      Les données de l'annuaire sont publiées sous licence
+      <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC-BY 4.0</a>.
+    </p>
+    <p>
+      Les MCP servers listés conservent leurs licences respectives, indiquées sur chaque fiche.
+      Les noms et logos des produits cités appartiennent à leurs propriétaires respectifs.
+    </p>
+
+    <h2>Marques tierces</h2>
+    <p>
+      « Claude » et « MCP / Model Context Protocol » sont des marques/standards d'<strong>Anthropic PBC</strong>.
+      Ce site est <strong>indépendant et non affilié</strong> à Anthropic. Aucun logo Anthropic n'est utilisé.
+    </p>
+
+    <h2>Demande de retrait</h2>
+    <p>
+      Auteur d'un MCP listé qui souhaite ne plus apparaître ?
+      Envoyez un email à <a href="mailto:retrait@findmymcp.fr">retrait@findmymcp.fr</a> ou ouvrez une issue
+      <code>[REMOVAL]</code> sur le <a href="https://github.com/forgekit/findmymcp/issues" rel="noopener">repo GitHub</a>.
+      Suppression sous 7 jours.
+    </p>
+
+    <h2>Liens d'affiliation</h2>
+    <p>
+      Certains liens externes peuvent être des liens d'affiliation, signalés explicitement par la mention
+      <em>« Lien affilié — commission si abonnement »</em>. L'éditorial reste indépendant et le classement
+      des MCPs n'est pas influencé par les programmes d'affiliation (LCEN art. 20).
+    </p>
+
+    <h2>Loi applicable</h2>
+    <p>
+      Le présent site est soumis au droit français. Tout litige relève de la compétence des juridictions
+      françaises.
+    </p>
+  </article>
+</BaseLayout>

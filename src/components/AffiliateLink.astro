@@ -1,0 +1,23 @@
+---
+interface Props {
+  href: string;
+  label: string;
+  partner: string;
+}
+
+const { href, label, partner } = Astro.props;
+---
+
+<span class="inline-flex flex-col gap-0.5">
+  <a
+    href={href}
+    rel="sponsored noopener nofollow"
+    target="_blank"
+    class="text-accent-400 hover:underline"
+  >
+    {label} <span class="text-xs">↗</span>
+  </a>
+  <span class="text-[10px] uppercase tracking-wide text-slate-500">
+    Lien affilié — commission si abonnement {partner}
+  </span>
+</span>

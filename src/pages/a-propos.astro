@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="À propos de FindMyMCP"
+  description="FindMyMCP est un annuaire francophone gratuit des MCP servers. Curation manuelle, descriptions FR, sans pub intrusive."
+>
+  <article class="container-prose py-12 md:py-16 prose prose-invert prose-slate">
+    <h1>À propos</h1>
+
+    <h2>Qu'est-ce qu'un MCP server ?</h2>
+    <p>
+      <strong>MCP</strong> (Model Context Protocol) est un protocole open-source défini par Anthropic
+      qui permet aux assistants IA — Claude, Claude Code, Cursor, et d'autres — de se connecter à
+      des outils externes : bases de données, APIs, fichiers locaux, services cloud.
+    </p>
+    <p>
+      Un <strong>MCP server</strong> est un petit programme qui expose ces outils à l'IA via le
+      protocole. Concrètement, vous installez un MCP, puis Claude peut lire votre Notion,
+      requêter votre base PostgreSQL ou ouvrir vos fichiers, en respectant strictement les
+      permissions que vous lui donnez.
+    </p>
+
+    <h2>Pourquoi FindMyMCP ?</h2>
+    <p>
+      L'écosystème MCP grossit vite mais reste majoritairement anglophone et fragmenté.
+      FindMyMCP centralise les MCPs disponibles, les classe par usage, et fournit pour
+      chacun :
+    </p>
+    <ul>
+      <li>Une description en français claire (pas de hype)</li>
+      <li>Des cas d'usage concrets, métier</li>
+      <li>La commande d'installation prête à coller</li>
+      <li>Un exemple de configuration</li>
+      <li>La compatibilité avec les principaux clients</li>
+    </ul>
+
+    <h2>Comment l'annuaire est-il alimenté ?</h2>
+    <p>
+      Trois sources :
+    </p>
+    <ul>
+      <li><strong>Scraper hebdomadaire</strong> qui parcourt GitHub (topics <code>mcp-server</code>, <code>anthropic-mcp</code>) chaque lundi.</li>
+      <li><strong>Soumissions communautaires</strong> via le <a href="/soumettre">formulaire dédié</a>.</li>
+      <li><strong>Curation manuelle</strong> : chaque entrée est revue avant publication.</li>
+    </ul>
+
+    <h2>Indépendance et marques</h2>
+    <p>
+      Site indépendant, <strong>non affilié</strong> à Anthropic.
+      « Claude » et « MCP / Model Context Protocol » sont des marques/standards d'Anthropic PBC.
+      Aucun logo Anthropic n'est utilisé. La couverture éditoriale reste indépendante.
+    </p>
+
+    <h2>Modèle économique</h2>
+    <p>
+      L'annuaire est et restera <strong>gratuit pour les utilisateurs</strong>. Le projet est financé par :
+    </p>
+    <ul>
+      <li>Quelques liens d'affiliation (toujours signalés explicitement) vers des outils de l'écosystème dev</li>
+      <li>Des emplacements sponsorisés clairement étiquetés <em>Sponsorisé</em></li>
+    </ul>
+    <p>
+      Pas de pub intrusive, pas de paywall, pas de cookies de tracking.
+    </p>
+
+    <h2>Auteurs / contact</h2>
+    <p>
+      FindMyMCP est maintenu par <code>forgekit</code>.
+      Contact : <a href="mailto:contact@findmymcp.fr">contact@findmymcp.fr</a><br />
+      Demande de retrait : <a href="mailto:retrait@findmymcp.fr">retrait@findmymcp.fr</a>
+    </p>
+
+    <h2>Code & données</h2>
+    <p>
+      Le code du site est open source : <a href="https://github.com/forgekit/findmymcp" rel="noopener">github.com/forgekit/findmymcp</a>.
+      Les données de l'annuaire sont publiées sous licence
+      <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC-BY 4.0</a>.
+    </p>
+  </article>
+</BaseLayout>

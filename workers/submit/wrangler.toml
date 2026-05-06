@@ -1,0 +1,15 @@
+name = "findmymcp-submit"
+main = "src/index.ts"
+compatibility_date = "2026-05-01"
+
+# Route the worker on /api/* of the Pages site (configured at Pages project level)
+
+[[d1_databases]]
+binding = "DB"
+database_name = "findmymcp-db"
+database_id = "to-fill-after-creation"
+
+# Secrets:
+# - GITHUB_TOKEN
+# - TURNSTILE_SECRET_KEY
+# - ANTHROPIC_API_KEY (for inline ORIAS check)

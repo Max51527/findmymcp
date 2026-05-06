@@ -1,0 +1,2 @@
+PLACEHOLDER - replace with actual og-default.png at deploy.
+Generate via Cloudflare OG-image worker or static design (1200x630).

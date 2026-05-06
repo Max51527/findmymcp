@@ -1,0 +1,255 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CategoryBadge from '../../components/CategoryBadge.astro';
+import MCPCard from '../../components/MCPCard.astro';
+import { allMCPs, getSimilarMCPs } from '../../lib/mcps';
+
+export function getStaticPaths() {
+  return allMCPs.map((mcp) => ({
+    params: { slug: mcp.slug },
+    props: { mcp },
+  }));
+}
+
+const { mcp } = Astro.props;
+const similar = getSimilarMCPs(mcp);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: mcp.nom,
+  description: mcp.description_fr,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Cross-platform',
+  programmingLanguage: mcp.langage,
+  license: mcp.licence,
+  url: `https://findmymcp.fr/mcp/${mcp.slug}`,
+  codeRepository: mcp.github_url,
+  author: { '@type': 'Person', name: mcp.auteur },
+  inLanguage: 'fr-FR',
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: `Qu'est-ce que ${mcp.nom} ?`,
+      acceptedAnswer: { '@type': 'Answer', text: mcp.description_fr },
+    },
+    {
+      '@type': 'Question',
+      name: `Comment installer ${mcp.nom} ?`,
+      acceptedAnswer: { '@type': 'Answer', text: `Installation en une commande : ${mcp.installation_cli}. Voir la configuration détaillée sur la fiche.` },
+    },
+    {
+      '@type': 'Question',
+      name: `${mcp.nom} est-il compatible avec Claude Code ?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: mcp.compatible_avec.includes('Claude Code')
+          ? `Oui, ${mcp.nom} est compatible avec Claude Code et ${mcp.compatible_avec.filter((c) => c !== 'Claude Code').join(', ')}.`
+          : `${mcp.nom} est compatible avec ${mcp.compatible_avec.join(', ')}.`,
+      },
+    },
+    {
+      '@type': 'Question',
+      name: `Quelle licence ?`,
+      acceptedAnswer: { '@type': 'Answer', text: `${mcp.nom} est publié sous licence ${mcp.licence} par ${mcp.auteur}.` },
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title={`${mcp.nom} : guide complet 2026`}
+  description={mcp.description_fr}
+  schema={schema}
+>
+  <article class="container-wide py-12 md:py-16">
+    <p class="text-sm text-slate-400 mb-3">
+      <a href="/annuaire" class="hover:text-accent-400">← Annuaire</a>
+    </p>
+
+    <header class="mb-10 pb-8 border-b border-slate-800">
+      <div class="flex flex-wrap items-center gap-2 mb-4">
+        {mcp.categorie.map((c) => <CategoryBadge slug={c} />)}
+        {mcp.featured && <span class="rounded-full bg-accent-500/20 px-2.5 py-0.5 text-xs font-medium text-accent-400">★ À la une</span>}
+        {mcp.sponsored && <span class="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-xs font-medium text-amber-400">Sponsorisé</span>}
+        {mcp.verified && <span class="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-medium text-emerald-400">✓ Vérifié</span>}
+      </div>
+
+      <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-4">
+        {mcp.nom} <span class="text-slate-500 text-2xl md:text-3xl font-normal">MCP server</span>
+      </h1>
+
+      <p class="text-lg text-slate-300 leading-relaxed max-w-3xl mb-6">
+        {mcp.description_fr}
+      </p>
+
+      <div class="flex flex-wrap gap-3">
+        <a href={mcp.github_url} rel="noopener" target="_blank" class="btn-primary">
+          Voir sur GitHub →
+        </a>
+        <a href="#installation" class="btn-ghost">
+          Installer
+        </a>
+      </div>
+    </header>
+
+    <div class="grid lg:grid-cols-[1fr_280px] gap-10">
+      <div class="space-y-12">
+        <section>
+          <h2 class="text-2xl font-bold mb-4">À quoi ça sert</h2>
+          <ul class="space-y-2 text-slate-200">
+            {mcp.cas_usage_fr.map((u) => (
+              <li class="flex items-start gap-3">
+                <span class="text-accent-400 mt-1">→</span>
+                <span>{u}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section id="installation">
+          <h2 class="text-2xl font-bold mb-4">Installation</h2>
+          <p class="text-slate-300 mb-4">Une commande pour démarrer :</p>
+          <pre class="select-all"><code>{mcp.installation_cli}</code></pre>
+          <p class="text-sm text-slate-500 mt-3">
+            Astuce : copiez cette ligne, puis collez-la dans la configuration MCP de votre client (Claude Desktop, Claude Code, Cursor…).
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-2xl font-bold mb-4">Configuration exemple</h2>
+          <pre><code>{mcp.config_exemple}</code></pre>
+        </section>
+
+        <section>
+          <h2 class="text-2xl font-bold mb-4">Compatibilité</h2>
+          <div class="flex flex-wrap gap-2">
+            {mcp.compatible_avec.map((c) => (
+              <span class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm">
+                {c}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h2 class="text-2xl font-bold mb-4">FAQ</h2>
+          <div class="space-y-4">
+            <details class="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+              <summary class="cursor-pointer font-semibold text-slate-200">Qu'est-ce que {mcp.nom} ?</summary>
+              <p class="mt-2 text-slate-300">{mcp.description_fr}</p>
+            </details>
+            <details class="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+              <summary class="cursor-pointer font-semibold text-slate-200">Comment l'installer ?</summary>
+              <p class="mt-2 text-slate-300">
+                Une commande : <code>{mcp.installation_cli}</code>. Voir la configuration détaillée plus haut.
+              </p>
+            </details>
+            <details class="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+              <summary class="cursor-pointer font-semibold text-slate-200">Compatible avec Claude Code ?</summary>
+              <p class="mt-2 text-slate-300">
+                {mcp.compatible_avec.includes('Claude Code')
+                  ? `Oui. Compatible également avec ${mcp.compatible_avec.filter((c) => c !== 'Claude Code').join(', ') || 'd’autres clients'}.`
+                  : `Non testé. Compatibilité confirmée : ${mcp.compatible_avec.join(', ')}.`}
+              </p>
+            </details>
+            <details class="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+              <summary class="cursor-pointer font-semibold text-slate-200">Quelle licence ?</summary>
+              <p class="mt-2 text-slate-300">
+                {mcp.nom} est publié sous licence <strong>{mcp.licence}</strong> par {mcp.auteur}.
+              </p>
+            </details>
+          </div>
+        </section>
+
+        <section class="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+          <h2 class="text-lg font-bold mb-3">Une mise à jour à proposer ?</h2>
+          <p class="text-sm text-slate-300 mb-4">
+            Erreur sur la fiche, version obsolète, nouvelle fonctionnalité ?
+            Ouvrez une PR sur GitHub ou envoyez-nous un mail.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <a
+              href={`https://github.com/forgekit/findmymcp/edit/main/data/mcps.json`}
+              rel="noopener"
+              target="_blank"
+              class="btn-ghost"
+            >
+              Modifier sur GitHub
+            </a>
+            <a
+              href={`mailto:retrait@findmymcp.fr?subject=${encodeURIComponent(`Demande retrait : ${mcp.nom}`)}`}
+              class="btn-ghost"
+            >
+              Demander retrait
+            </a>
+          </div>
+        </section>
+      </div>
+
+      <aside class="space-y-6 lg:sticky lg:top-20 lg:self-start">
+        <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+          <div class="text-xs uppercase tracking-wider text-slate-500 mb-3">Méta</div>
+          <dl class="space-y-3 text-sm">
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-400">Auteur</dt>
+              <dd class="font-medium text-slate-200">{mcp.auteur}</dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-400">Langage</dt>
+              <dd class="font-mono text-slate-200">{mcp.langage}</dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-400">Licence</dt>
+              <dd class="font-mono text-slate-200">{mcp.licence}</dd>
+            </div>
+            {mcp.github_stars > 0 && (
+              <div class="flex justify-between gap-3">
+                <dt class="text-slate-400">★ GitHub</dt>
+                <dd class="font-mono text-slate-200">{mcp.github_stars.toLocaleString('fr-FR')}</dd>
+              </div>
+            )}
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-400">Ajouté le</dt>
+              <dd class="text-slate-200">{mcp.date_ajout}</dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-400">Mis à jour</dt>
+              <dd class="text-slate-200">{mcp.derniere_maj}</dd>
+            </div>
+          </dl>
+        </div>
+
+        {mcp.tags.length > 0 && (
+          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+            <div class="text-xs uppercase tracking-wider text-slate-500 mb-3">Tags</div>
+            <div class="flex flex-wrap gap-1.5">
+              {mcp.tags.map((t) => (
+                <span class="rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-300">#{t}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </aside>
+    </div>
+
+    {similar.length > 0 && (
+      <section class="mt-16 pt-10 border-t border-slate-800">
+        <h2 class="text-2xl font-bold mb-6">MCPs similaires</h2>
+        <div class="grid gap-4 md:grid-cols-3">
+          {similar.map((m) => <MCPCard mcp={m} />)}
+        </div>
+      </section>
+    )}
+
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(faqSchema)}
+    />
+  </article>
+</BaseLayout>
