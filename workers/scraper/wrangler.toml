@@ -8,7 +8,7 @@ crons = ["0 4 * * 1"]  # lundi 04h00 UTC
 [[d1_databases]]
 binding = "DB"
 database_name = "findmymcp-db"
-database_id = "to-fill-after-creation"
+database_id = "babb3c6e-00f5-4305-954d-a9d3e5a4953e"
 
 # Secrets (set via `wrangler secret put`):
 # - GITHUB_TOKEN

@@ -5,13 +5,11 @@ pages_build_output_dir = "dist"
 [vars]
 PUBLIC_SITE_URL = "https://findmymcp.fr"
 
-# === D1 binding (created in T1 deploy) ===
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "findmymcp-db"
-# database_id = "to-fill-after-creation"
+[[d1_databases]]
+binding = "DB"
+database_name = "findmymcp-db"
+database_id = "babb3c6e-00f5-4305-954d-a9d3e5a4953e"
 
-# === KV binding ===
-# [[kv_namespaces]]
-# binding = "CACHE"
-# id = "to-fill-after-creation"
+[[kv_namespaces]]
+binding = "CACHE"
+id = "7f92407438ac42aca59172ee096de8a4"
