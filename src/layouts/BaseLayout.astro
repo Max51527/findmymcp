@@ -24,6 +24,8 @@ const canonical = new URL(Astro.url.pathname, siteUrl).toString().replace(/\/$/,
 const ogImage = image.startsWith('http') ? image : `${siteUrl}${image}`;
 
 const fullTitle = title.endsWith('FindMyMCP') ? title : `${title} — FindMyMCP`;
+
+const cfAnalyticsToken = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN;
 ---
 
 <!doctype html>
@@ -68,5 +70,13 @@ const fullTitle = title.endsWith('FindMyMCP') ? title : `${title} — FindMyMCP`
       <slot />
     </main>
     <Footer />
+    {cfAnalyticsToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={`{"token": "${cfAnalyticsToken}"}`}
+      />
+    )}
   </body>
 </html>
