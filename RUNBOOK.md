@@ -9,7 +9,7 @@ Documentation opérationnelle. Tout ce qu'il faut pour déployer, dépanner et m
 ```
 ┌──────────────────┐     ┌────────────────────┐
 │   Hostinger      │     │     GitHub         │
-│   (registrar)    │     │  max51527/         │
+│   (registrar)    │     │  Max51527/         │
 │   findmymcp.fr   │     │   findmymcp        │
 └────────┬─────────┘     └──────┬─────────────┘
          │                      │ webhook deploy
@@ -63,7 +63,7 @@ wrangler d1 execute findmymcp-db --file workers/scraper/schema.sql --remote
 wrangler kv:namespace create findmymcp-cache
 
 # Pages project (via UI Cloudflare dashboard)
-# Connect repo GitHub → max51527/findmymcp
+# Connect repo GitHub → Max51527/findmymcp
 # Build command : npm run build
 # Build output : dist
 # Root directory : (empty)

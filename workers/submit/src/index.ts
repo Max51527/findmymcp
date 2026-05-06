@@ -15,7 +15,7 @@ interface SubmitPayload {
   'cf-turnstile-response'?: string;
 }
 
-const REPO = 'max51527/findmymcp';
+const REPO = 'Max51527/findmymcp';
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
