@@ -5,6 +5,7 @@ interface Env {
   DB: D1Database;
   GITHUB_TOKEN: string;
   ANTHROPIC_API_KEY: string;
+  SCRAPER_TRIGGER_KEY: string;
 }
 
 interface GitHubRepo {
@@ -28,7 +29,11 @@ export default {
   },
   async fetch(req: Request, env: Env) {
     const url = new URL(req.url);
-    if (url.pathname === '/run' && req.headers.get('x-trigger-key') === env.GITHUB_TOKEN.slice(-8)) {
+    if (url.pathname === '/run') {
+      const provided = req.headers.get('x-trigger-key') ?? '';
+      if (!env.SCRAPER_TRIGGER_KEY || !timingSafeEqual(provided, env.SCRAPER_TRIGGER_KEY)) {
+        return new Response('Unauthorized', { status: 401 });
+      }
       await runScraper(env);
       return new Response('OK', { status: 200 });
     }
@@ -78,8 +83,8 @@ async function runScraper(env: Env) {
       }
 
       await env.DB.prepare(`
-        INSERT INTO mcps (slug, nom, description_fr, categorie, auteur, github_url, github_stars, langage, licence, compatible_avec, tags, date_ajout, derniere_maj, featured, sponsored, verified, rejected_orias)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0)
+        INSERT INTO mcps (slug, nom, description_fr, categorie, auteur, github_url, github_stars, langage, licence, compatible_avec, installation_cli, config_exemple, cas_usage_fr, tutoriels_fr, tags, date_ajout, derniere_maj, featured, sponsored, verified, rejected_orias)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0)
       `).bind(
         slugify(repo.full_name),
         repo.full_name.split('/').pop(),
@@ -91,6 +96,10 @@ async function runScraper(env: Env) {
         repo.language ?? 'unknown',
         repo.license?.spdx_id ?? 'unknown',
         JSON.stringify(meta.compatible_avec),
+        meta.installation_cli,
+        meta.config_exemple,
+        JSON.stringify(meta.cas_usage_fr),
+        '[]',
         JSON.stringify(repo.topics),
         todayISO(),
         todayISO(),
@@ -146,6 +155,9 @@ interface DescribeResult {
   description_fr: string;
   categorie: string[];
   compatible_avec: string[];
+  cas_usage_fr: string[];
+  installation_cli: string;
+  config_exemple: string;
   rejected_orias: boolean;
 }
 
@@ -153,7 +165,7 @@ async function describe(anthropic: Anthropic, repo: GitHubRepo, readme: string):
   const prompt = `REPO: ${repo.full_name}\nDESCRIPTION: ${repo.description ?? '(none)'}\nLANGUAGE: ${repo.language ?? 'unknown'}\nSTARS: ${repo.stargazers_count}\n\nREADME:\n${readme.slice(0, 6000)}`;
   const msg = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 800,
+    max_tokens: 1200,
     system: MCP_DESCRIBER_PROMPT,
     messages: [{ role: 'user', content: prompt }],
   });
@@ -164,10 +176,13 @@ async function describe(anthropic: Anthropic, repo: GitHubRepo, readme: string):
       description_fr: String(json.description_fr ?? '').slice(0, 200),
       categorie: Array.isArray(json.categorie) ? json.categorie : ['misc'],
       compatible_avec: Array.isArray(json.compatible_avec) ? json.compatible_avec : [],
+      cas_usage_fr: Array.isArray(json.cas_usage_fr) ? json.cas_usage_fr.map((s: unknown) => String(s).slice(0, 80)) : [],
+      installation_cli: String(json.installation_cli ?? ''),
+      config_exemple: String(json.config_exemple ?? ''),
       rejected_orias: Boolean(json.rejected_orias),
     };
   } catch {
-    return { description_fr: '', categorie: ['misc'], compatible_avec: [], rejected_orias: false };
+    return { description_fr: '', categorie: ['misc'], compatible_avec: [], cas_usage_fr: [], installation_cli: '', config_exemple: '', rejected_orias: false };
   }
 }
 
@@ -181,4 +196,11 @@ function slugify(s: string): string {
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }

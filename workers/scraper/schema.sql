@@ -12,11 +12,11 @@ CREATE TABLE IF NOT EXISTS mcps (
   langage TEXT,
   licence TEXT,
   compatible_avec TEXT NOT NULL,      -- JSON array
-  installation_cli TEXT,
-  config_exemple TEXT,
-  cas_usage_fr TEXT,                  -- JSON array
-  tutoriels_fr TEXT,                  -- JSON array
-  tags TEXT,                          -- JSON array
+  installation_cli TEXT DEFAULT '',
+  config_exemple TEXT DEFAULT '',
+  cas_usage_fr TEXT DEFAULT '[]',     -- JSON array
+  tutoriels_fr TEXT DEFAULT '[]',     -- JSON array
+  tags TEXT DEFAULT '[]',             -- JSON array
   date_ajout TEXT NOT NULL,           -- ISO YYYY-MM-DD
   derniere_maj TEXT NOT NULL,
   featured INTEGER DEFAULT 0,

@@ -73,6 +73,7 @@ cd workers/scraper
 npm install
 wrangler secret put GITHUB_TOKEN          # github_pat_...
 wrangler secret put ANTHROPIC_API_KEY     # sk-ant-...
+wrangler secret put SCRAPER_TRIGGER_KEY   # 32+ chars random (déclenche /run manuellement)
 wrangler deploy
 
 cd ../submit

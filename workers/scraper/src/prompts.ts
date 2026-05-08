@@ -15,6 +15,8 @@ Tu produis UNIQUEMENT un JSON valide selon ce schéma :
   ],
   "categorie": ["1 à 3 catégories parmi : productivity, communication, dev-tools, data-analytics, cloud-infra, design, ai-llm, automation, browser-web, filesystem, knowledge-management, misc"],
   "compatible_avec": ["Claude Desktop", "Claude Code", "Cursor", "Cline", etc. selon ce que dit le README"],
+  "installation_cli": "Commande shell prête à coller (npx, uvx, docker run...) extraite du README. Vide si non trouvée.",
+  "config_exemple": "Bloc JSON config exemple (mcpServers) extrait du README. Vide si non trouvé.",
   "rejected_orias": false,
   "raison_rejet": null
 }
