@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "astro build && pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@types/alpinejs": "^3.13.11",
+    "pagefind": "^1.5.2",
     "prettier": "^3.4.2",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-tailwindcss": "^0.6.9"

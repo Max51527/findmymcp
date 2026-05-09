@@ -25,7 +25,7 @@ const MAX_PER_RUN = 100;
 
 export default {
   async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
-    ctx.waitUntil(runScraper(env));
+    ctx.waitUntil(Promise.all([runScraper(env), pruneOldSubmissions(env)]));
   },
   async fetch(req: Request, env: Env) {
     const url = new URL(req.url);
@@ -40,6 +40,15 @@ export default {
     return new Response('findmymcp-scraper', { status: 200 });
   },
 };
+
+async function pruneOldSubmissions(env: Env) {
+  // RGPD : la politique de confidentialité promet la suppression des emails de
+  // soumission 6 mois après décision. On efface l'email mais garde le statut
+  // pour audit/stats anonymes.
+  await env.DB.prepare(
+    "UPDATE submissions SET email = '' WHERE email != '' AND created_at < datetime('now', '-180 days')",
+  ).run().catch(() => null);
+}
 
 async function runScraper(env: Env) {
   const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
