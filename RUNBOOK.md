@@ -126,18 +126,37 @@ git push
 
 ---
 
-## 6. Surveiller le scraper hebdo
+## 6. Scraper hebdo : flow PR auto
 
-Lundi 04h UTC, vérifier :
+Lundi 04h UTC, le worker `findmymcp-scraper` :
+
+1. Lit `data/mcps.json` de `main` via API GitHub (source de vérité)
+2. Cherche les nouveaux repos sur GitHub topics `mcp-server`, `anthropic-mcp`, `claude-skill`
+3. Filtre : déjà connus, < 5 stars, ORIAS, échec describer
+4. Pour chaque nouveau MCP, génère la fiche FR via Haiku 4.5
+5. Si ≥ 1 candidat : crée une branche `scraper/weekly-YYYY-MM-DD`, commit `data/mcps.json` augmenté, ouvre une **PR draft** avec tableau récap
+
+À toi de :
+- Lire les fiches FR proposées (peut être réécrites)
+- Cocher/décocher `featured`, `verified`
+- Merger la PR → Cloudflare Pages redéploie automatiquement
+
+Si pas de candidat : aucune PR, aucun bruit.
+
+### Surveiller
 
 ```bash
 # Logs en direct
 cd workers/scraper
 wrangler tail
 
-# Audit DB
+# Décompte hebdo (CANDIDATE / REJECTED_ORIAS / REJECTED_DESCRIBER)
 wrangler d1 execute findmymcp-db --remote \
   --command "SELECT status, COUNT(*) FROM audit_scraper WHERE ts > datetime('now', '-7 days') GROUP BY status"
+
+# Trigger manuel
+curl -X POST https://findmymcp-scraper.<account>.workers.dev/run \
+  -H "x-trigger-key: $SCRAPER_TRIGGER_KEY"
 ```
 
 ---

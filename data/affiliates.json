@@ -1,1 +1,38 @@
-[]
+{
+  "_doc": "Affiliés par slug MCP. Remplir 'href' avec ton vrai lien d'affiliation après inscription au programme partenaire. Les UTM sont là pour tracker les clics avant même de signer un programme.",
+  "stripe-mcp": {
+    "partner": "Stripe",
+    "label": "Créer un compte Stripe",
+    "href": "https://dashboard.stripe.com/register?utm_source=findmymcp&utm_medium=mcp-page&utm_campaign=stripe-mcp"
+  },
+  "supabase-mcp": {
+    "partner": "Supabase",
+    "label": "Démarrer un projet Supabase",
+    "href": "https://supabase.com/?utm_source=findmymcp&utm_medium=mcp-page&utm_campaign=supabase-mcp"
+  },
+  "cloudflare-mcp": {
+    "partner": "Cloudflare",
+    "label": "Ouvrir un compte Cloudflare",
+    "href": "https://dash.cloudflare.com/sign-up?utm_source=findmymcp&utm_medium=mcp-page&utm_campaign=cloudflare-mcp"
+  },
+  "notion-mcp": {
+    "partner": "Notion",
+    "label": "Créer un workspace Notion",
+    "href": "https://www.notion.so/signup?utm_source=findmymcp&utm_medium=mcp-page&utm_campaign=notion-mcp"
+  },
+  "linear-mcp": {
+    "partner": "Linear",
+    "label": "Tester Linear",
+    "href": "https://linear.app/signup?utm_source=findmymcp&utm_medium=mcp-page&utm_campaign=linear-mcp"
+  },
+  "sentry-mcp": {
+    "partner": "Sentry",
+    "label": "Créer un projet Sentry",
+    "href": "https://sentry.io/signup/?utm_source=findmymcp&utm_medium=mcp-page&utm_campaign=sentry-mcp"
+  },
+  "atlassian-mcp": {
+    "partner": "Atlassian",
+    "label": "Démarrer avec Jira/Confluence",
+    "href": "https://www.atlassian.com/try?utm_source=findmymcp&utm_medium=mcp-page&utm_campaign=atlassian-mcp"
+  }
+}

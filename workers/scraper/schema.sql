@@ -1,33 +1,9 @@
 -- D1 schema for findmymcp-db
 -- Apply with: wrangler d1 execute findmymcp-db --file workers/scraper/schema.sql
-
-CREATE TABLE IF NOT EXISTS mcps (
-  slug TEXT PRIMARY KEY,
-  nom TEXT NOT NULL,
-  description_fr TEXT NOT NULL,
-  categorie TEXT NOT NULL,            -- JSON array
-  auteur TEXT NOT NULL,
-  github_url TEXT NOT NULL UNIQUE,
-  github_stars INTEGER DEFAULT 0,
-  langage TEXT,
-  licence TEXT,
-  compatible_avec TEXT NOT NULL,      -- JSON array
-  installation_cli TEXT DEFAULT '',
-  config_exemple TEXT DEFAULT '',
-  cas_usage_fr TEXT DEFAULT '[]',     -- JSON array
-  tutoriels_fr TEXT DEFAULT '[]',     -- JSON array
-  tags TEXT DEFAULT '[]',             -- JSON array
-  date_ajout TEXT NOT NULL,           -- ISO YYYY-MM-DD
-  derniere_maj TEXT NOT NULL,
-  featured INTEGER DEFAULT 0,
-  sponsored INTEGER DEFAULT 0,
-  verified INTEGER DEFAULT 0,
-  rejected_orias INTEGER DEFAULT 0
-);
-
-CREATE INDEX IF NOT EXISTS idx_mcps_categorie ON mcps(categorie);
-CREATE INDEX IF NOT EXISTS idx_mcps_featured ON mcps(featured);
-CREATE INDEX IF NOT EXISTS idx_mcps_date ON mcps(date_ajout DESC);
+--
+-- Source of truth for MCPs = data/mcps.json (git). The scraper proposes new
+-- entries via Pull Request, not by writing rows here. D1 only stores audit
+-- + community submissions.
 
 CREATE TABLE IF NOT EXISTS audit_scraper (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

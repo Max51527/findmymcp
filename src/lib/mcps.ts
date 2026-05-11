@@ -1,5 +1,6 @@
 import mcpsData from '../../data/mcps.json';
 import categoriesData from '../../data/categories.json';
+import affiliatesData from '../../data/affiliates.json';
 
 export interface MCP {
   slug: string;
@@ -29,6 +30,20 @@ export interface Category {
   slug: string;
   nom: string;
   description: string;
+}
+
+export interface Affiliate {
+  partner: string;
+  label: string;
+  href: string;
+}
+
+const affiliates = affiliatesData as Record<string, Affiliate | string>;
+
+export function getAffiliate(slug: string): Affiliate | null {
+  const entry = affiliates[slug];
+  if (!entry || typeof entry === 'string') return null;
+  return entry;
 }
 
 export const allMCPs: MCP[] = (mcpsData as MCP[]).filter((m) => !m.rejected_orias);

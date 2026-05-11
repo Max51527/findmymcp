@@ -2,7 +2,8 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CategoryBadge from '../../components/CategoryBadge.astro';
 import MCPCard from '../../components/MCPCard.astro';
-import { allMCPs, getSimilarMCPs } from '../../lib/mcps';
+import AffiliateLink from '../../components/AffiliateLink.astro';
+import { allMCPs, getSimilarMCPs, getAffiliate } from '../../lib/mcps';
 
 export function getStaticPaths() {
   return allMCPs.map((mcp) => ({
@@ -13,6 +14,7 @@ export function getStaticPaths() {
 
 const { mcp } = Astro.props;
 const similar = getSimilarMCPs(mcp);
+const affiliate = getAffiliate(mcp.slug);
 
 const schema = {
   '@context': 'https://schema.org',
@@ -233,6 +235,13 @@ const faqSchema = {
                 <span class="rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-300">#{t}</span>
               ))}
             </div>
+          </div>
+        )}
+
+        {affiliate && (
+          <div class="rounded-xl border border-accent-500/30 bg-accent-500/5 p-5">
+            <div class="text-xs uppercase tracking-wider text-accent-400 mb-2">Tester {affiliate.partner}</div>
+            <AffiliateLink href={affiliate.href} label={affiliate.label} partner={affiliate.partner} />
           </div>
         )}
       </aside>
