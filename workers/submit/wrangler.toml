@@ -9,7 +9,14 @@ binding = "DB"
 database_name = "findmymcp-db"
 database_id = "babb3c6e-00f5-4305-954d-a9d3e5a4953e"
 
+[vars]
+PUBLIC_SITE_URL = "https://findmymcp.fr"
+
 # Secrets:
 # - GITHUB_TOKEN
 # - TURNSTILE_SECRET_KEY
 # - ANTHROPIC_API_KEY (for inline ORIAS check)
+# - STRIPE_SECRET_KEY (sk_live_... or sk_test_...)
+# - STRIPE_WEBHOOK_SECRET (whsec_... — set after creating the webhook endpoint
+#   pointing to https://findmymcp.fr/api/stripe-webhook on event
+#   checkout.session.completed)

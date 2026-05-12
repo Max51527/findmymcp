@@ -126,6 +126,38 @@ git push
 
 ---
 
+## 5b. Activer Stripe (sponsoring) + Qonto
+
+1. **Stripe dashboard** → Developers > API keys → copier `sk_live_...`
+2. **Stripe** > Settings > Payouts → ajouter ton IBAN Qonto (FR76…). Virements
+   automatiques à T+7 jours par défaut, configurable en hebdo/quotidien.
+3. **Stripe** > Developers > Webhooks → "Add endpoint" :
+   - URL : `https://findmymcp.fr/api/stripe-webhook`
+   - Event : `checkout.session.completed`
+   - Copier le `whsec_...` révélé après création
+4. Pousser les secrets :
+   ```bash
+   cd workers/submit
+   wrangler secret put STRIPE_SECRET_KEY      # paste sk_live_...
+   wrangler secret put STRIPE_WEBHOOK_SECRET  # paste whsec_...
+   wrangler deploy
+   ```
+5. Vérifier en mode test :
+   ```bash
+   stripe trigger checkout.session.completed   # depuis Stripe CLI
+   wrangler d1 execute findmymcp-db --remote \
+     --command "SELECT * FROM sponsorships ORDER BY id DESC LIMIT 5"
+   ```
+
+À chaque paiement Stripe réussi :
+- Row insérée dans `sponsorships` (D1)
+- Stripe émet la facture par email (configurer template dans dashboard)
+- Stripe verse sur Qonto à T+7
+
+**À toi de faire manuellement après paiement** : ouvrir `data/mcps.json`,
+mettre `"sponsored": true` sur le slug correspondant, commit. Tu peux automatiser
+ça plus tard via une PR auto similaire au scraper.
+
 ## 6. Scraper hebdo : flow PR auto
 
 Lundi 04h UTC, le worker `findmymcp-scraper` :

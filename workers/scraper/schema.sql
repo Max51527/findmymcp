@@ -32,3 +32,17 @@ CREATE TABLE IF NOT EXISTS email_captures (
   created_at TEXT NOT NULL,
   confirmed_at TEXT
 );
+
+CREATE TABLE IF NOT EXISTS sponsorships (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  stripe_session_id TEXT NOT NULL UNIQUE,
+  mcp_slug TEXT NOT NULL,
+  tier TEXT NOT NULL,
+  months INTEGER NOT NULL,
+  amount_cents INTEGER NOT NULL,
+  email TEXT NOT NULL,
+  status TEXT DEFAULT 'paid',
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_sponsorships_slug ON sponsorships(mcp_slug);

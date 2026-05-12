@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="CGU sponsoring"
+  description="Conditions générales applicables aux placements Featured / Sponsorisé sur findmymcp.fr."
+>
+  <section class="container-prose py-12 md:py-16 prose-invert">
+    <h1 class="text-3xl md:text-4xl font-bold mb-6">CGU sponsoring — findmymcp.fr</h1>
+    <p class="text-slate-400 text-sm mb-8">Version 1 — applicable au {new Date().toISOString().slice(0, 10)}.</p>
+
+    <h2 class="text-xl font-semibold mt-8 mb-3">1. Objet</h2>
+    <p>Les présentes conditions encadrent la mise en avant payante (« Featured / Sponsorisé »)
+    d'un MCP server sur findmymcp.fr, en application de l'article 20 LCEN (transparence
+    de la publicité en ligne).</p>
+
+    <h2 class="text-xl font-semibold mt-8 mb-3">2. Tarifs</h2>
+    <ul class="list-disc pl-6 space-y-1">
+      <li><strong>Featured 1 mois</strong> : 99 € — paiement unique</li>
+      <li><strong>Featured 3 mois</strong> : 249 €</li>
+      <li><strong>Featured 12 mois</strong> : 799 €</li>
+    </ul>
+    <p>Prix nets, hors TVA (franchise en base — micro-entreprise, art. 293 B CGI).
+    Paiement Stripe. Facture envoyée par email sous 24h.</p>
+
+    <h2 class="text-xl font-semibold mt-8 mb-3">3. Ce qui est inclus</h2>
+    <ul class="list-disc pl-6 space-y-1">
+      <li>Affichage du badge <em>« Sponsorisé »</em> sur la fiche du MCP</li>
+      <li>Position prioritaire dans la liste de sa catégorie</li>
+      <li>Mention(s) newsletter selon le tier choisi</li>
+      <li>Pour le tier 12 mois : article blog dédié (rédaction éditoriale indépendante)
+        + logo dans le footer « Partenaires »</li>
+    </ul>
+
+    <h2 class="text-xl font-semibold mt-8 mb-3">4. Ce qui n'est pas inclus (transparence éditoriale)</h2>
+    <ul class="list-disc pl-6 space-y-1">
+      <li>Aucune modification de la description FR (rédaction indépendante par l'éditeur)</li>
+      <li>Aucune influence sur les filtres de recherche, le moteur Pagefind, ou les classements
+        par étoiles GitHub / date / catégorie</li>
+      <li>Aucune suppression d'avis négatif éventuel</li>
+    </ul>
+    <p>Le sponsoring est un placement visuel, pas une garantie de couverture éditoriale positive.</p>
+
+    <h2 class="text-xl font-semibold mt-8 mb-3">5. Refus de sponsoring</h2>
+    <p>L'éditeur peut refuser tout placement pour les motifs suivants :</p>
+    <ul class="list-disc pl-6 space-y-1">
+      <li>MCP fournissant un conseil financier, fiscal ou patrimonial (cloison ORIAS)</li>
+      <li>MCP non-libre / sans repository public</li>
+      <li>Atteinte à la marque, contenu trompeur, concurrence déloyale</li>
+    </ul>
+    <p>En cas de refus, remboursement intégral sous 14 jours.</p>
+
+    <h2 class="text-xl font-semibold mt-8 mb-3">6. Rétractation</h2>
+    <p>Vous disposez de 14 jours pour vous rétracter (art. L.221-18 Code de la consommation),
+    sauf si la mise en avant a déjà débuté avec votre accord exprès.</p>
+
+    <h2 class="text-xl font-semibold mt-8 mb-3">7. Données collectées</h2>
+    <p>Email de facturation conservé 10 ans (obligation comptable). Données Stripe (carte,
+    adresse) gérées par Stripe Inc. selon leur propre politique.</p>
+
+    <h2 class="text-xl font-semibold mt-8 mb-3">8. Litiges</h2>
+    <p>Droit français. Tribunal compétent du ressort de l'éditeur. Médiateur de la consommation :
+    voir les <a href="/mentions-legales" class="underline hover:text-accent-300">mentions légales</a>.</p>
+
+    <h2 class="text-xl font-semibold mt-8 mb-3">9. Contact</h2>
+    <p>Toute question : <a href="mailto:contact@findmymcp.fr" class="underline hover:text-accent-300">contact@findmymcp.fr</a>.</p>
+  </section>
+</BaseLayout>
