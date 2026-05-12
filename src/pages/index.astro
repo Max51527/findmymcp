@@ -118,4 +118,65 @@ const schema = {
       </a>
     </div>
   </section>
+
+  <section class="container-wide py-16 border-t border-slate-800">
+    <div class="rounded-2xl border border-accent-500/30 bg-accent-500/5 p-8 md:p-10 text-center max-w-2xl mx-auto">
+      <h2 class="text-2xl font-bold mb-2">Recevez les nouveaux MCPs chaque semaine</h2>
+      <p class="text-slate-300 mb-6 text-sm">
+        Une newsletter, le lundi, avec les MCPs ajoutés et 1 tuto FR. Pas de spam, désinscription en 1 clic.
+      </p>
+      <form id="newsletter-form" class="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+        <input
+          type="email"
+          name="email"
+          required
+          placeholder="vous@exemple.fr"
+          class="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 focus:border-accent-500 focus:outline-none text-sm"
+          aria-label="Adresse email"
+        />
+        <button
+          type="submit"
+          class="bg-accent-500 hover:bg-accent-400 disabled:opacity-50 text-slate-900 font-semibold px-5 py-2.5 rounded-lg transition text-sm"
+        >
+          S'inscrire
+        </button>
+      </form>
+      <p id="newsletter-status" class="text-xs mt-3 hidden" role="status" aria-live="polite"></p>
+      <p class="text-[11px] text-slate-500 mt-4">
+        Vos données : RGPD. Voir <a href="/confidentialite" class="underline hover:text-accent-300">confidentialité</a>.
+      </p>
+    </div>
+  </section>
+
+  <script>
+    const form = document.getElementById('newsletter-form') as HTMLFormElement;
+    const status = document.getElementById('newsletter-status') as HTMLParagraphElement;
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = (new FormData(form).get('email') as string)?.trim();
+      if (!email) return;
+      const btn = form.querySelector('button') as HTMLButtonElement;
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/newsletter-subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, source: 'home' }),
+        });
+        const ok = res.ok;
+        status.textContent = ok
+          ? 'Merci ! Un email de confirmation va arriver.'
+          : `Erreur : ${await res.text()}`;
+        status.className = ok
+          ? 'text-xs mt-3 text-green-400'
+          : 'text-xs mt-3 text-red-400';
+        if (ok) form.reset();
+      } catch {
+        status.textContent = 'Erreur réseau, réessayez.';
+        status.className = 'text-xs mt-3 text-red-400';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
 </BaseLayout>

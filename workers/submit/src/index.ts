@@ -44,6 +44,9 @@ export default {
     if (req.method === 'POST' && url.pathname.endsWith('/api/stripe-webhook')) {
       return handleStripeWebhook(req, env);
     }
+    if (req.method === 'POST' && url.pathname.endsWith('/api/newsletter-subscribe')) {
+      return handleNewsletterSubscribe(req, env);
+    }
     return new Response('Not found', { status: 404 });
   },
 };
@@ -160,6 +163,37 @@ async function handleSponsorCheckout(req: Request, env: Env): Promise<Response> 
   }
   const session = await res.json<{ id: string; url: string }>();
   return new Response(JSON.stringify({ url: session.url }), {
+    status: 200, headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+async function handleNewsletterSubscribe(req: Request, env: Env): Promise<Response> {
+  let payload: { email?: string; source?: string };
+  try {
+    payload = await req.json();
+  } catch {
+    return text('Invalid JSON', 400);
+  }
+  const email = (payload.email ?? '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 200) {
+    return text('Email invalide', 400);
+  }
+  const source = (payload.source ?? 'unknown').slice(0, 40);
+
+  const ip = req.headers.get('cf-connecting-ip') ?? 'unknown';
+  const ipHash = await sha256(ip);
+  const recent = await env.DB.prepare(
+    "SELECT COUNT(*) as n FROM email_captures WHERE source = ? AND created_at > datetime('now', '-1 hour')",
+  ).bind(ipHash).first<{ n: number }>();
+  if ((recent?.n ?? 0) >= 10) {
+    return text('Trop d\'inscriptions, réessayez plus tard', 429);
+  }
+
+  await env.DB.prepare(
+    'INSERT OR IGNORE INTO email_captures (email, source, confirmed, created_at) VALUES (?, ?, 0, ?)',
+  ).bind(email, source, new Date().toISOString()).run().catch((e) => console.error('newsletter insert', e));
+
+  return new Response(JSON.stringify({ ok: true }), {
     status: 200, headers: { 'Content-Type': 'application/json' },
   });
 }

@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Page introuvable"
+  description="Cette page n'existe pas ou plus."
+  noIndex={true}
+>
+  <section class="container-prose py-16 md:py-24 text-center">
+    <div class="text-7xl font-bold text-accent-400 mb-4">404</div>
+    <h1 class="text-2xl md:text-3xl font-bold mb-3">Page introuvable</h1>
+    <p class="text-slate-300 mb-8">
+      Cette URL ne correspond à aucun MCP, aucune catégorie, ni aucune autre page.
+    </p>
+    <div class="flex flex-wrap gap-3 justify-center">
+      <a href="/" class="bg-accent-500 hover:bg-accent-400 text-slate-900 font-semibold px-5 py-2.5 rounded-lg transition">
+        Retour à l'annuaire
+      </a>
+      <a href="/annuaire" class="border border-slate-700 hover:border-accent-500 px-5 py-2.5 rounded-lg transition">
+        Voir tous les MCPs
+      </a>
+    </div>
+  </section>
+</BaseLayout>
