@@ -150,6 +150,9 @@ const schema = {
     >
       window.__MCPS__ = mcps;
     </script>
-    <script is:inline src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+    <script>
+      import Alpine from 'alpinejs';
+      Alpine.start();
+    </script>
   </section>
 </BaseLayout>

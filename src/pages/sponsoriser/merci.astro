@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Merci pour votre sponsoring"
+  description="Votre placement Featured sera activé sous 24h ouvrées."
+>
+  <section class="container-prose py-16 md:py-24 text-center">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent-500/20 text-accent-400 text-3xl mb-6">
+      ✓
+    </div>
+    <h1 class="text-3xl md:text-4xl font-bold mb-3">Paiement confirmé</h1>
+    <p class="text-slate-300 max-w-xl mx-auto mb-6">
+      Merci ! Votre MCP sera mis en avant <strong>sous 24h ouvrées</strong> après vérification
+      manuelle (contrôle ORIAS, vérification que la fiche éditoriale reste neutre).
+    </p>
+    <p class="text-slate-400 text-sm max-w-xl mx-auto mb-8">
+      Une facture Stripe vous a été envoyée par email. Pour toute question :
+      <a href="mailto:contact@findmymcp.fr" class="text-accent-400 underline hover:text-accent-300">contact@findmymcp.fr</a>.
+    </p>
+    <a href="/" class="inline-block bg-accent-500 hover:bg-accent-400 text-slate-900 font-semibold px-6 py-3 rounded-lg transition">
+      Retour à l'annuaire
+    </a>
+  </section>
+</BaseLayout>

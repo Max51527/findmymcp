@@ -73,6 +73,7 @@ cd workers/scraper
 npm install
 wrangler secret put GITHUB_TOKEN          # github_pat_...
 wrangler secret put ANTHROPIC_API_KEY     # sk-ant-...
+wrangler secret put SCRAPER_TRIGGER_KEY   # 32+ chars random (déclenche /run manuellement)
 wrangler deploy
 
 cd ../submit
@@ -125,18 +126,69 @@ git push
 
 ---
 
-## 6. Surveiller le scraper hebdo
+## 5b. Activer Stripe (sponsoring) + Qonto
 
-Lundi 04h UTC, vérifier :
+1. **Stripe dashboard** → Developers > API keys → copier `sk_live_...`
+2. **Stripe** > Settings > Payouts → ajouter ton IBAN Qonto (FR76…). Virements
+   automatiques à T+7 jours par défaut, configurable en hebdo/quotidien.
+3. **Stripe** > Developers > Webhooks → "Add endpoint" :
+   - URL : `https://findmymcp.fr/api/stripe-webhook`
+   - Event : `checkout.session.completed`
+   - Copier le `whsec_...` révélé après création
+4. Pousser les secrets :
+   ```bash
+   cd workers/submit
+   wrangler secret put STRIPE_SECRET_KEY      # paste sk_live_...
+   wrangler secret put STRIPE_WEBHOOK_SECRET  # paste whsec_...
+   wrangler deploy
+   ```
+5. Vérifier en mode test :
+   ```bash
+   stripe trigger checkout.session.completed   # depuis Stripe CLI
+   wrangler d1 execute findmymcp-db --remote \
+     --command "SELECT * FROM sponsorships ORDER BY id DESC LIMIT 5"
+   ```
+
+À chaque paiement Stripe réussi :
+- Row insérée dans `sponsorships` (D1)
+- Stripe émet la facture par email (configurer template dans dashboard)
+- Stripe verse sur Qonto à T+7
+
+**À toi de faire manuellement après paiement** : ouvrir `data/mcps.json`,
+mettre `"sponsored": true` sur le slug correspondant, commit. Tu peux automatiser
+ça plus tard via une PR auto similaire au scraper.
+
+## 6. Scraper hebdo : flow PR auto
+
+Lundi 04h UTC, le worker `findmymcp-scraper` :
+
+1. Lit `data/mcps.json` de `main` via API GitHub (source de vérité)
+2. Cherche les nouveaux repos sur GitHub topics `mcp-server`, `anthropic-mcp`, `claude-skill`
+3. Filtre : déjà connus, < 5 stars, ORIAS, échec describer
+4. Pour chaque nouveau MCP, génère la fiche FR via Haiku 4.5
+5. Si ≥ 1 candidat : crée une branche `scraper/weekly-YYYY-MM-DD`, commit `data/mcps.json` augmenté, ouvre une **PR draft** avec tableau récap
+
+À toi de :
+- Lire les fiches FR proposées (peut être réécrites)
+- Cocher/décocher `featured`, `verified`
+- Merger la PR → Cloudflare Pages redéploie automatiquement
+
+Si pas de candidat : aucune PR, aucun bruit.
+
+### Surveiller
 
 ```bash
 # Logs en direct
 cd workers/scraper
 wrangler tail
 
-# Audit DB
+# Décompte hebdo (CANDIDATE / REJECTED_ORIAS / REJECTED_DESCRIBER)
 wrangler d1 execute findmymcp-db --remote \
   --command "SELECT status, COUNT(*) FROM audit_scraper WHERE ts > datetime('now', '-7 days') GROUP BY status"
+
+# Trigger manuel
+curl -X POST https://findmymcp-scraper.<account>.workers.dev/run \
+  -H "x-trigger-key: $SCRAPER_TRIGGER_KEY"
 ```
 
 ---

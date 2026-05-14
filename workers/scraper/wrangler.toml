@@ -13,3 +13,4 @@ database_id = "babb3c6e-00f5-4305-954d-a9d3e5a4953e"
 # Secrets (set via `wrangler secret put`):
 # - GITHUB_TOKEN
 # - ANTHROPIC_API_KEY
+# - SCRAPER_TRIGGER_KEY  (random 32+ chars, sent as `x-trigger-key` to /run)

@@ -29,7 +29,7 @@ const { mcp } = Astro.props;
   </p>
 
   <div class="flex flex-wrap gap-1.5 mb-3">
-    {mcp.categorie.slice(0, 2).map((c) => <CategoryBadge slug={c} />)}
+    {mcp.categorie.slice(0, 2).map((c) => <CategoryBadge slug={c} link={false} />)}
   </div>
 
   <div class="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-800">

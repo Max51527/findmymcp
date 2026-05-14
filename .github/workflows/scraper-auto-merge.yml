@@ -1,0 +1,57 @@
+name: Auto-merge scraper PRs
+
+# Auto-merge PRs opened by the weekly scraper, but only if you've marked
+# them with the label "scraper-trusted" (manual safety gate). The scraper
+# opens PRs as draft by default — applying the label and marking ready
+# triggers this workflow.
+
+on:
+  pull_request:
+    types: [labeled, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: |
+      startsWith(github.event.pull_request.head.ref, 'scraper/weekly-') &&
+      contains(github.event.pull_request.labels.*.name, 'scraper-trusted') &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for CI to pass
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const sha = context.payload.pull_request.head.sha;
+            for (let i = 0; i < 60; i++) {
+              const { data } = await github.rest.checks.listForRef({ owner, repo, ref: sha });
+              const runs = data.check_runs;
+              if (runs.length > 0 && runs.every(r => r.status === 'completed')) {
+                const failed = runs.filter(r => r.conclusion !== 'success' && r.conclusion !== 'skipped' && r.conclusion !== 'neutral');
+                if (failed.length > 0) {
+                  core.setFailed(`CI failed: ${failed.map(r => r.name).join(', ')}`);
+                  return;
+                }
+                core.info('CI green');
+                return;
+              }
+              await new Promise(r => setTimeout(r, 10000));
+            }
+            core.setFailed('CI did not finish in 10 min');
+
+      - name: Squash-merge PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request.number;
+            await github.rest.pulls.merge({
+              owner, repo, pull_number: pr,
+              merge_method: 'squash',
+              commit_title: context.payload.pull_request.title,
+            });
+            core.info(`Merged PR #${pr}`);

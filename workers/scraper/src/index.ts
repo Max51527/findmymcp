@@ -5,6 +5,7 @@ interface Env {
   DB: D1Database;
   GITHUB_TOKEN: string;
   ANTHROPIC_API_KEY: string;
+  SCRAPER_TRIGGER_KEY: string;
 }
 
 interface GitHubRepo {
@@ -19,27 +20,70 @@ interface GitHubRepo {
   topics: string[];
 }
 
+interface MCPEntry {
+  slug: string;
+  nom: string;
+  description_fr: string;
+  categorie: string[];
+  auteur: string;
+  github_url: string;
+  github_stars: number;
+  langage: string;
+  licence: string;
+  compatible_avec: string[];
+  installation_cli: string;
+  config_exemple: string;
+  cas_usage_fr: string[];
+  tutoriels_fr: string[];
+  tags: string[];
+  date_ajout: string;
+  derniere_maj: string;
+  featured: boolean;
+  sponsored: boolean;
+  verified: boolean;
+  rejected_orias: boolean;
+}
+
+const REPO = 'Max51527/findmymcp';
 const TOPICS = ['mcp-server', 'anthropic-mcp', 'claude-skill'];
-const MAX_PER_RUN = 100;
+const MAX_PER_RUN = 80;
+const MIN_STARS = 5;
 
 export default {
   async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
-    ctx.waitUntil(runScraper(env));
+    ctx.waitUntil(Promise.all([runScraper(env), pruneOldSubmissions(env)]));
   },
   async fetch(req: Request, env: Env) {
     const url = new URL(req.url);
-    if (url.pathname === '/run' && req.headers.get('x-trigger-key') === env.GITHUB_TOKEN.slice(-8)) {
-      await runScraper(env);
-      return new Response('OK', { status: 200 });
+    if (url.pathname === '/run') {
+      const provided = req.headers.get('x-trigger-key') ?? '';
+      if (!env.SCRAPER_TRIGGER_KEY || !timingSafeEqual(provided, env.SCRAPER_TRIGGER_KEY)) {
+        return new Response('Unauthorized', { status: 401 });
+      }
+      const result = await runScraper(env);
+      return new Response(JSON.stringify(result), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
+      });
     }
     return new Response('findmymcp-scraper', { status: 200 });
   },
 };
 
+async function pruneOldSubmissions(env: Env) {
+  // RGPD : la politique de confidentialité promet la suppression des emails de
+  // soumission 6 mois après décision.
+  await env.DB.prepare(
+    "UPDATE submissions SET email = '' WHERE email != '' AND created_at < datetime('now', '-180 days')",
+  ).run().catch(() => null);
+}
+
 async function runScraper(env: Env) {
   const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
   const seen = new Set<string>();
-  let processed = 0, accepted = 0, rejected = 0;
+  const existing = await fetchCurrentMcps(env.GITHUB_TOKEN);
+  const knownUrls = new Set(existing.map((m) => m.github_url));
+  const candidates: MCPEntry[] = [];
+  let processed = 0, rejected = 0;
 
   for (const topic of TOPICS) {
     if (processed >= MAX_PER_RUN) break;
@@ -50,16 +94,8 @@ async function runScraper(env: Env) {
       seen.add(repo.full_name);
       processed++;
 
-      const exists = await env.DB.prepare(
-        'SELECT slug FROM mcps WHERE github_url = ?',
-      ).bind(repo.html_url).first();
-
-      if (exists) {
-        await env.DB.prepare(
-          'UPDATE mcps SET github_stars = ?, derniere_maj = ? WHERE github_url = ?',
-        ).bind(repo.stargazers_count, todayISO(), repo.html_url).run();
-        continue;
-      }
+      if (knownUrls.has(repo.html_url)) continue;
+      if (repo.stargazers_count < MIN_STARS) continue;
 
       const readme = await fetchReadme(env.GITHUB_TOKEN, repo.full_name);
 
@@ -71,48 +107,147 @@ async function runScraper(env: Env) {
       }
 
       const meta = await describe(anthropic, repo, readme);
-      if (meta.rejected_orias) {
-        await logAudit(env, repo.full_name, 'REJECTED_ORIAS_DESCRIBER');
+      if (meta.rejected_orias || !meta.description_fr) {
+        await logAudit(env, repo.full_name, 'REJECTED_DESCRIBER');
         rejected++;
         continue;
       }
 
-      await env.DB.prepare(`
-        INSERT INTO mcps (slug, nom, description_fr, categorie, auteur, github_url, github_stars, langage, licence, compatible_avec, tags, date_ajout, derniere_maj, featured, sponsored, verified, rejected_orias)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0)
-      `).bind(
-        slugify(repo.full_name),
-        repo.full_name.split('/').pop(),
-        meta.description_fr,
-        JSON.stringify(meta.categorie),
-        repo.full_name.split('/')[0],
-        repo.html_url,
-        repo.stargazers_count,
-        repo.language ?? 'unknown',
-        repo.license?.spdx_id ?? 'unknown',
-        JSON.stringify(meta.compatible_avec),
-        JSON.stringify(repo.topics),
-        todayISO(),
-        todayISO(),
-      ).run();
+      const slug = slugify(repo.full_name.split('/').pop() ?? repo.full_name);
+      if (existing.some((m) => m.slug === slug)) continue;
 
-      accepted++;
-      await logAudit(env, repo.full_name, 'ACCEPTED');
+      const today = todayISO();
+      candidates.push({
+        slug,
+        nom: repo.full_name.split('/').pop() ?? repo.full_name,
+        description_fr: meta.description_fr,
+        categorie: meta.categorie,
+        auteur: repo.full_name.split('/')[0]!,
+        github_url: repo.html_url,
+        github_stars: repo.stargazers_count,
+        langage: repo.language ?? 'unknown',
+        licence: repo.license?.spdx_id ?? 'unknown',
+        compatible_avec: meta.compatible_avec,
+        installation_cli: meta.installation_cli,
+        config_exemple: meta.config_exemple,
+        cas_usage_fr: meta.cas_usage_fr,
+        tutoriels_fr: [],
+        tags: repo.topics,
+        date_ajout: today,
+        derniere_maj: today,
+        featured: false,
+        sponsored: false,
+        verified: false,
+        rejected_orias: false,
+      });
+      await logAudit(env, repo.full_name, 'CANDIDATE');
     }
   }
 
-  console.log(`scraper done: ${processed} processed, ${accepted} accepted, ${rejected} rejected`);
+  let prUrl: string | null = null;
+  if (candidates.length > 0) {
+    prUrl = await openPullRequest(env.GITHUB_TOKEN, existing, candidates);
+  }
+
+  const summary = { processed, candidates: candidates.length, rejected, pr: prUrl };
+  console.log('scraper done', summary);
+  return summary;
+}
+
+async function fetchCurrentMcps(token: string): Promise<MCPEntry[]> {
+  const res = await fetch(`https://api.github.com/repos/${REPO}/contents/data/mcps.json?ref=main`, {
+    headers: ghHeaders(token, 'application/vnd.github.raw'),
+  });
+  if (!res.ok) throw new Error(`fetch mcps.json failed: ${res.status}`);
+  const text = await res.text();
+  return JSON.parse(text) as MCPEntry[];
+}
+
+async function openPullRequest(token: string, existing: MCPEntry[], newOnes: MCPEntry[]): Promise<string | null> {
+  // 1. resolve main HEAD sha
+  const mainRef = await fetch(`https://api.github.com/repos/${REPO}/git/ref/heads/main`, {
+    headers: ghHeaders(token),
+  }).then((r) => r.json<{ object: { sha: string } }>());
+  const mainSha = mainRef.object.sha;
+
+  // 2. create branch (or reuse if exists)
+  const branch = `scraper/weekly-${todayISO()}`;
+  const createBranchRes = await fetch(`https://api.github.com/repos/${REPO}/git/refs`, {
+    method: 'POST',
+    headers: { ...ghHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: mainSha }),
+  });
+  if (!createBranchRes.ok && createBranchRes.status !== 422) {
+    console.error('branch create failed', await createBranchRes.text());
+    return null;
+  }
+
+  // 3. fetch file sha on the branch
+  const fileMetaRes = await fetch(`https://api.github.com/repos/${REPO}/contents/data/mcps.json?ref=${branch}`, {
+    headers: ghHeaders(token),
+  });
+  const fileMeta = await fileMetaRes.json<{ sha: string }>();
+
+  // 4. PUT updated mcps.json
+  const merged = [...existing, ...newOnes];
+  const updatedJson = JSON.stringify(merged, null, 2) + '\n';
+  const b64 = btoa(unescape(encodeURIComponent(updatedJson)));
+  const putRes = await fetch(`https://api.github.com/repos/${REPO}/contents/data/mcps.json`, {
+    method: 'PUT',
+    headers: { ...ghHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: `chore(scraper): propose ${newOnes.length} new MCPs (${todayISO()})`,
+      content: b64,
+      sha: fileMeta.sha,
+      branch,
+    }),
+  });
+  if (!putRes.ok) {
+    console.error('put failed', await putRes.text());
+    return null;
+  }
+
+  // 5. open PR
+  const body = [
+    `Scraper hebdo — ${newOnes.length} MCPs candidats à valider.`,
+    '',
+    '| Slug | Auteur | Stars | Catégorie |',
+    '|------|--------|-------|-----------|',
+    ...newOnes.map((m) => `| \`${m.slug}\` | ${m.auteur} | ${m.github_stars} | ${m.categorie.join(', ')} |`),
+    '',
+    'Revoir chaque fiche puis merge si OK. La cloison ORIAS est appliquée côté scraper.',
+  ].join('\n');
+
+  const prRes = await fetch(`https://api.github.com/repos/${REPO}/pulls`, {
+    method: 'POST',
+    headers: { ...ghHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title: `[scraper] ${newOnes.length} nouveaux MCPs — semaine du ${todayISO()}`,
+      head: branch,
+      base: 'main',
+      body,
+      draft: true,
+    }),
+  });
+  if (!prRes.ok) {
+    console.error('pr create failed', await prRes.text());
+    return null;
+  }
+  const pr = await prRes.json<{ html_url: string }>();
+  return pr.html_url;
+}
+
+function ghHeaders(token: string, accept = 'application/vnd.github+json') {
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Accept': accept,
+    'User-Agent': 'findmymcp-scraper/0.2',
+  };
 }
 
 async function searchGitHubByTopic(token: string, topic: string): Promise<GitHubRepo[]> {
   const url = `https://api.github.com/search/repositories?q=topic:${topic}&sort=stars&per_page=50`;
-  const res = await fetch(url, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/vnd.github+json',
-      'User-Agent': 'findmymcp-scraper/0.1',
-    },
-  });
+  const res = await fetch(url, { headers: ghHeaders(token) });
   if (!res.ok) throw new Error(`github search failed: ${res.status}`);
   const data = await res.json<{ items: GitHubRepo[] }>();
   return data.items ?? [];
@@ -120,13 +255,7 @@ async function searchGitHubByTopic(token: string, topic: string): Promise<GitHub
 
 async function fetchReadme(token: string, fullName: string): Promise<string> {
   const url = `https://api.github.com/repos/${fullName}/readme`;
-  const res = await fetch(url, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/vnd.github.raw',
-      'User-Agent': 'findmymcp-scraper/0.1',
-    },
-  });
+  const res = await fetch(url, { headers: ghHeaders(token, 'application/vnd.github.raw') });
   if (!res.ok) return '';
   return await res.text();
 }
@@ -146,6 +275,9 @@ interface DescribeResult {
   description_fr: string;
   categorie: string[];
   compatible_avec: string[];
+  cas_usage_fr: string[];
+  installation_cli: string;
+  config_exemple: string;
   rejected_orias: boolean;
 }
 
@@ -153,7 +285,7 @@ async function describe(anthropic: Anthropic, repo: GitHubRepo, readme: string):
   const prompt = `REPO: ${repo.full_name}\nDESCRIPTION: ${repo.description ?? '(none)'}\nLANGUAGE: ${repo.language ?? 'unknown'}\nSTARS: ${repo.stargazers_count}\n\nREADME:\n${readme.slice(0, 6000)}`;
   const msg = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 800,
+    max_tokens: 1200,
     system: MCP_DESCRIBER_PROMPT,
     messages: [{ role: 'user', content: prompt }],
   });
@@ -164,10 +296,13 @@ async function describe(anthropic: Anthropic, repo: GitHubRepo, readme: string):
       description_fr: String(json.description_fr ?? '').slice(0, 200),
       categorie: Array.isArray(json.categorie) ? json.categorie : ['misc'],
       compatible_avec: Array.isArray(json.compatible_avec) ? json.compatible_avec : [],
+      cas_usage_fr: Array.isArray(json.cas_usage_fr) ? json.cas_usage_fr.map((s: unknown) => String(s).slice(0, 80)) : [],
+      installation_cli: String(json.installation_cli ?? ''),
+      config_exemple: String(json.config_exemple ?? ''),
       rejected_orias: Boolean(json.rejected_orias),
     };
   } catch {
-    return { description_fr: '', categorie: ['misc'], compatible_avec: [], rejected_orias: false };
+    return { description_fr: '', categorie: ['misc'], compatible_avec: [], cas_usage_fr: [], installation_cli: '', config_exemple: '', rejected_orias: false };
   }
 }
 
@@ -181,4 +316,11 @@ function slugify(s: string): string {
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }

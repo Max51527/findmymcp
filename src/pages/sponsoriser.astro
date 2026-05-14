@@ -1,0 +1,169 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { allMCPs } from '../lib/mcps';
+
+const featurableMcps = allMCPs.filter((m) => !m.sponsored && !m.rejected_orias);
+---
+
+<BaseLayout
+  title="Sponsoriser un MCP — placement Featured"
+  description="Mettez votre MCP en avant sur findmymcp.fr. Paiement Stripe sécurisé, badge Sponsorisé, mention dans la home."
+>
+  <section class="container-prose py-12 md:py-16">
+    <h1 class="text-3xl md:text-4xl font-bold mb-3">Sponsoriser un MCP</h1>
+    <p class="text-slate-300 mb-2">
+      Mettez en avant un MCP server sur la page d'accueil et en tête des résultats catégorie,
+      avec un badge <span class="rounded bg-accent-500/20 px-1.5 py-0.5 text-accent-300 text-xs">Sponsorisé</span> transparent.
+    </p>
+    <p class="text-slate-400 text-sm mb-10">
+      Paiement Stripe (carte, IBAN SEPA). Facture envoyée par email. TVA 0 % (franchise micro-entreprise).
+      Conditions :
+      <a href="/cgu-sponsoring" class="underline hover:text-accent-300">CGU sponsoring</a>.
+    </p>
+
+    <div class="grid gap-5 md:grid-cols-3 mb-10">
+      <button data-tier="featured-1m" class="tier-card text-left rounded-xl border border-slate-800 bg-slate-900/50 p-6 hover:border-accent-500 focus:border-accent-500 focus:outline-none transition">
+        <div class="text-xs uppercase tracking-wider text-slate-500 mb-2">1 mois</div>
+        <div class="text-3xl font-bold mb-1">99 €</div>
+        <div class="text-slate-400 text-sm mb-4">HT, paiement unique</div>
+        <ul class="space-y-1.5 text-sm text-slate-300">
+          <li>→ Badge Sponsorisé 30 jours</li>
+          <li>→ Position prioritaire catégorie</li>
+          <li>→ 1 mention newsletter</li>
+        </ul>
+      </button>
+
+      <button data-tier="featured-3m" class="tier-card text-left rounded-xl border-2 border-accent-500 bg-accent-500/5 p-6 hover:bg-accent-500/10 focus:outline-none transition relative">
+        <span class="absolute -top-2 right-4 rounded-full bg-accent-500 px-2 py-0.5 text-[10px] uppercase text-slate-900 font-bold">Le plus choisi</span>
+        <div class="text-xs uppercase tracking-wider text-accent-400 mb-2">3 mois</div>
+        <div class="text-3xl font-bold mb-1">249 €</div>
+        <div class="text-slate-400 text-sm mb-4">soit 83 €/mois — 16 % de remise</div>
+        <ul class="space-y-1.5 text-sm text-slate-300">
+          <li>→ Tout du tier 1 mois</li>
+          <li>→ Mise en avant home page</li>
+          <li>→ 3 mentions newsletter</li>
+        </ul>
+      </button>
+
+      <button data-tier="featured-12m" class="tier-card text-left rounded-xl border border-slate-800 bg-slate-900/50 p-6 hover:border-accent-500 focus:border-accent-500 focus:outline-none transition">
+        <div class="text-xs uppercase tracking-wider text-slate-500 mb-2">12 mois</div>
+        <div class="text-3xl font-bold mb-1">799 €</div>
+        <div class="text-slate-400 text-sm mb-4">soit 66 €/mois — 33 % de remise</div>
+        <ul class="space-y-1.5 text-sm text-slate-300">
+          <li>→ Tout du tier 3 mois</li>
+          <li>→ Article blog dédié (case study)</li>
+          <li>→ Logo "Partenaires" footer</li>
+        </ul>
+      </button>
+    </div>
+
+    <form id="sponsor-form" class="space-y-5 rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+      <input type="hidden" id="tier" name="tier" />
+
+      <div>
+        <label for="mcp_slug" class="block text-sm font-medium text-slate-200 mb-1.5">MCP à sponsoriser *</label>
+        <select
+          id="mcp_slug"
+          name="mcp_slug"
+          required
+          class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 focus:border-accent-500 focus:outline-none"
+        >
+          <option value="">— Choisir un MCP de l'annuaire —</option>
+          {featurableMcps.map((m) => (
+            <option value={m.slug}>{m.nom} ({m.auteur})</option>
+          ))}
+        </select>
+        <p class="text-xs text-slate-500 mt-1">Votre MCP n'est pas encore dans l'annuaire ? <a href="/soumettre" class="underline hover:text-accent-300">Soumettez-le d'abord</a>.</p>
+      </div>
+
+      <div>
+        <label for="email" class="block text-sm font-medium text-slate-200 mb-1.5">Email de facturation *</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          placeholder="finance@example.com"
+          class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 focus:border-accent-500 focus:outline-none"
+        />
+      </div>
+
+      <div class="text-xs text-slate-400 leading-relaxed">
+        En cliquant, vous êtes redirigé vers Stripe Checkout. Les conditions de mise en avant
+        sont décrites dans les <a href="/cgu-sponsoring" class="underline hover:text-accent-300">CGU sponsoring</a>.
+        Aucune influence sur les classements éditoriaux non sponsorisés (cf. mention LCEN art. 20).
+      </div>
+
+      <button
+        type="submit"
+        id="submit-btn"
+        disabled
+        class="w-full bg-accent-500 hover:bg-accent-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-semibold py-3 rounded-lg transition"
+      >
+        Choisir un tier ci-dessus pour continuer
+      </button>
+
+      <div id="sponsor-status" class="text-sm hidden" role="status" aria-live="polite"></div>
+    </form>
+  </section>
+</BaseLayout>
+
+<script>
+  const TIER_LABELS: Record<string, string> = {
+    'featured-1m': 'Payer 99 € — Featured 1 mois',
+    'featured-3m': 'Payer 249 € — Featured 3 mois',
+    'featured-12m': 'Payer 799 € — Featured 12 mois',
+  };
+
+  const tierInput = document.getElementById('tier') as HTMLInputElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const cards = document.querySelectorAll<HTMLButtonElement>('.tier-card');
+
+  cards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const tier = card.getAttribute('data-tier') ?? '';
+      tierInput.value = tier;
+      cards.forEach((c) => c.classList.remove('ring-2', 'ring-accent-400'));
+      card.classList.add('ring-2', 'ring-accent-400');
+      submitBtn.disabled = false;
+      submitBtn.textContent = TIER_LABELS[tier] ?? 'Payer';
+    });
+  });
+
+  const form = document.getElementById('sponsor-form') as HTMLFormElement;
+  const status = document.getElementById('sponsor-status') as HTMLDivElement;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!tierInput.value) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Redirection vers Stripe…';
+    status.classList.add('hidden');
+
+    const data = {
+      tier: tierInput.value,
+      mcp_slug: (document.getElementById('mcp_slug') as HTMLSelectElement).value,
+      email: (document.getElementById('email') as HTMLInputElement).value,
+    };
+
+    try {
+      const res = await fetch('/api/sponsor-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(t || 'Erreur Stripe');
+      }
+      const { url } = (await res.json()) as { url: string };
+      window.location.href = url;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Erreur inconnue';
+      status.textContent = `Erreur : ${msg}`;
+      status.className = 'text-sm text-red-400';
+      submitBtn.disabled = false;
+      submitBtn.textContent = TIER_LABELS[tierInput.value] ?? 'Payer';
+    }
+  });
+</script>
