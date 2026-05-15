@@ -225,8 +225,97 @@ async function handleStripeWebhook(req: Request, env: Env): Promise<Response> {
       'paid',
       new Date().toISOString(),
     ).run().catch((e) => console.error('d1 insert failed', e));
+
+    // Auto-flip sponsored: true on data/mcps.json via a PR. Best-effort.
+    if (meta.mcp_slug && env.GITHUB_TOKEN) {
+      await openSponsoredPR(env.GITHUB_TOKEN, meta.mcp_slug, meta.tier ?? '', Number(meta.months ?? '0'))
+        .catch((e) => console.error('sponsored PR failed', e));
+    }
   }
   return new Response('ok', { status: 200 });
+}
+
+const REPO_OWNER_NAME = 'Max51527/findmymcp';
+
+async function openSponsoredPR(token: string, slug: string, tier: string, months: number): Promise<void> {
+  const ghHeaders = (accept = 'application/vnd.github+json') => ({
+    'Authorization': `Bearer ${token}`,
+    'Accept': accept,
+    'User-Agent': 'findmymcp-submit/0.2',
+  });
+
+  const mainRef = await fetch(`https://api.github.com/repos/${REPO_OWNER_NAME}/git/ref/heads/main`, {
+    headers: ghHeaders(),
+  }).then((r) => r.json<{ object: { sha: string } }>());
+
+  const today = new Date().toISOString().slice(0, 10);
+  const branch = `sponsored/${slug}-${today}`;
+  const createRes = await fetch(`https://api.github.com/repos/${REPO_OWNER_NAME}/git/refs`, {
+    method: 'POST',
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: mainRef.object.sha }),
+  });
+  if (!createRes.ok && createRes.status !== 422) {
+    console.error('sponsored branch create failed', await createRes.text());
+    return;
+  }
+
+  const fileRes = await fetch(`https://api.github.com/repos/${REPO_OWNER_NAME}/contents/data/mcps.json?ref=${branch}`, {
+    headers: ghHeaders(),
+  });
+  const fileMeta = await fileRes.json<{ sha: string; content: string }>();
+  const raw = atob(fileMeta.content.replace(/\n/g, ''));
+  const mcps = JSON.parse(raw) as Array<{ slug: string; sponsored?: boolean }>;
+  const target = mcps.find((m) => m.slug === slug);
+  if (!target) {
+    console.error('slug not found in mcps.json', slug);
+    return;
+  }
+  if (target.sponsored === true) {
+    console.log('already sponsored', slug);
+    return;
+  }
+  target.sponsored = true;
+
+  const updated = JSON.stringify(mcps, null, 2) + '\n';
+  const b64 = btoa(unescape(encodeURIComponent(updated)));
+  const putRes = await fetch(`https://api.github.com/repos/${REPO_OWNER_NAME}/contents/data/mcps.json`, {
+    method: 'PUT',
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: `chore(sponsor): mark ${slug} as sponsored (${tier})`,
+      content: b64,
+      sha: fileMeta.sha,
+      branch,
+    }),
+  });
+  if (!putRes.ok) {
+    console.error('sponsored PUT failed', await putRes.text());
+    return;
+  }
+
+  await fetch(`https://api.github.com/repos/${REPO_OWNER_NAME}/pulls`, {
+    method: 'POST',
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title: `[sponsor] ${slug} → sponsored (${tier}, ${months} mois)`,
+      head: branch,
+      base: 'main',
+      body: [
+        `Paiement Stripe reçu pour \`${slug}\`.`,
+        '',
+        `- Tier : ${tier}`,
+        `- Durée : ${months} mois`,
+        `- Date paiement : ${today}`,
+        '',
+        'Cette PR flippe `sponsored: true` sur la fiche concernée.',
+        'Merger pour activer le badge "Sponsorisé" + position prioritaire.',
+        '',
+        'À planifier dans 1 issue : retirer `sponsored: true` après la durée.',
+      ].join('\n'),
+      draft: false,
+    }),
+  });
 }
 
 async function verifyStripeSignature(payload: string, header: string, secret: string): Promise<boolean> {
