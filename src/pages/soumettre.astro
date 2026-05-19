@@ -1,6 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { allCategories } from '../lib/mcps';
+
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
 ---
 
 <BaseLayout
@@ -90,7 +92,7 @@ import { allCategories } from '../lib/mcps';
         </label>
       </div>
 
-      <div id="turnstile-container" class="cf-turnstile" data-sitekey="DUMMY_REPLACE_AT_DEPLOY"></div>
+      <div id="turnstile-container" class="cf-turnstile" data-sitekey={turnstileSiteKey}></div>
 
       <button type="submit" class="btn-primary w-full justify-center">
         Soumettre la proposition →
