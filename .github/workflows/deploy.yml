@@ -48,6 +48,19 @@ jobs:
         with: { node-version: 20, cache: npm, cache-dependency-path: workers/submit/package-lock.json }
       - run: npm ci
         working-directory: workers/submit
+      - name: Apply D1 schema + migrations (idempotent)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        working-directory: workers/submit
+        run: |
+          # Creates any missing tables/indexes (CREATE ... IF NOT EXISTS).
+          npx wrangler d1 execute findmymcp-db --remote --file ../scraper/schema.sql
+          # Backfill the ip_hash column on pre-existing email_captures tables.
+          # SQLite has no ADD COLUMN IF NOT EXISTS, so swallow the "duplicate
+          # column" error that occurs once the column is present.
+          npx wrangler d1 execute findmymcp-db --remote \
+            --command "ALTER TABLE email_captures ADD COLUMN ip_hash TEXT" || true
       - name: Deploy submit
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
