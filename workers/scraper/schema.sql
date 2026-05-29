@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS email_captures (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT NOT NULL UNIQUE,
   source TEXT,
+  ip_hash TEXT,
   confirmed INTEGER DEFAULT 0,
   created_at TEXT NOT NULL,
   confirmed_at TEXT
@@ -46,3 +47,4 @@ CREATE TABLE IF NOT EXISTS sponsorships (
 );
 
 CREATE INDEX IF NOT EXISTS idx_sponsorships_slug ON sponsorships(mcp_slug);
+CREATE INDEX IF NOT EXISTS idx_email_captures_ip ON email_captures(ip_hash, created_at);

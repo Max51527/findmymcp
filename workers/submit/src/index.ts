@@ -183,15 +183,15 @@ async function handleNewsletterSubscribe(req: Request, env: Env): Promise<Respon
   const ip = req.headers.get('cf-connecting-ip') ?? 'unknown';
   const ipHash = await sha256(ip);
   const recent = await env.DB.prepare(
-    "SELECT COUNT(*) as n FROM email_captures WHERE source = ? AND created_at > datetime('now', '-1 hour')",
+    "SELECT COUNT(*) as n FROM email_captures WHERE ip_hash = ? AND created_at > datetime('now', '-1 hour')",
   ).bind(ipHash).first<{ n: number }>();
   if ((recent?.n ?? 0) >= 10) {
     return text('Trop d\'inscriptions, réessayez plus tard', 429);
   }
 
   await env.DB.prepare(
-    'INSERT OR IGNORE INTO email_captures (email, source, confirmed, created_at) VALUES (?, ?, 0, ?)',
-  ).bind(email, source, new Date().toISOString()).run().catch((e) => console.error('newsletter insert', e));
+    'INSERT OR IGNORE INTO email_captures (email, source, ip_hash, confirmed, created_at) VALUES (?, ?, ?, 0, ?)',
+  ).bind(email, source, ipHash, new Date().toISOString()).run().catch((e) => console.error('newsletter insert', e));
 
   return new Response(JSON.stringify({ ok: true }), {
     status: 200, headers: { 'Content-Type': 'application/json' },
