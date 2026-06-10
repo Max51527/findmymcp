@@ -265,17 +265,37 @@ async function openSponsoredPR(token: string, slug: string, tier: string, months
   });
   const fileMeta = await fileRes.json<{ sha: string; content: string }>();
   const raw = atob(fileMeta.content.replace(/\n/g, ''));
-  const mcps = JSON.parse(raw) as Array<{ slug: string; sponsored?: boolean }>;
+  const mcps = JSON.parse(raw) as Array<{
+    slug: string;
+    sponsored?: boolean;
+    sponsored_tier?: string;
+    sponsored_until?: string;
+    sponsored_paid_on?: string;
+  }>;
   const target = mcps.find((m) => m.slug === slug);
   if (!target) {
     console.error('slug not found in mcps.json', slug);
     return;
   }
-  if (target.sponsored === true) {
-    console.log('already sponsored', slug);
+  // Webhook retry guard: one payment per slug+tier+day. A same-day retry
+  // (branch already updated) must not extend the period twice.
+  if (target.sponsored_paid_on === today && target.sponsored_tier === tier) {
+    console.log('sponsor payment already applied today', slug);
     return;
   }
+
+  // Renewal-aware expiry: extend from the current end date when the
+  // sponsorship is still active, from today otherwise.
+  const base = target.sponsored_until && target.sponsored_until >= today
+    ? new Date(`${target.sponsored_until}T00:00:00Z`)
+    : new Date(`${today}T00:00:00Z`);
+  base.setUTCMonth(base.getUTCMonth() + months);
+  const until = base.toISOString().slice(0, 10);
+
   target.sponsored = true;
+  target.sponsored_tier = tier;
+  target.sponsored_until = until;
+  target.sponsored_paid_on = today;
 
   const updated = JSON.stringify(mcps, null, 2) + '\n';
   const b64 = btoa(unescape(encodeURIComponent(updated)));
@@ -283,7 +303,7 @@ async function openSponsoredPR(token: string, slug: string, tier: string, months
     method: 'PUT',
     headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      message: `chore(sponsor): mark ${slug} as sponsored (${tier})`,
+      message: `chore(sponsor): ${slug} sponsored until ${until} (${tier})`,
       content: b64,
       sha: fileMeta.sha,
       branch,
@@ -298,7 +318,7 @@ async function openSponsoredPR(token: string, slug: string, tier: string, months
     method: 'POST',
     headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      title: `[sponsor] ${slug} → sponsored (${tier}, ${months} mois)`,
+      title: `[sponsor] ${slug} → sponsorisé jusqu'au ${until} (${tier})`,
       head: branch,
       base: 'main',
       body: [
@@ -307,11 +327,12 @@ async function openSponsoredPR(token: string, slug: string, tier: string, months
         `- Tier : ${tier}`,
         `- Durée : ${months} mois`,
         `- Date paiement : ${today}`,
+        `- Fin de sponsoring : ${until}`,
         '',
-        'Cette PR flippe `sponsored: true` sur la fiche concernée.',
-        'Merger pour activer le badge "Sponsorisé" + position prioritaire.',
-        '',
-        'À planifier dans 1 issue : retirer `sponsored: true` après la durée.',
+        'Cette PR active le badge "Sponsorisé", la position prioritaire en catégorie,',
+        'et (tiers 3m/12m) la mise en avant home. L\'expiration est automatique :',
+        'au-delà de `sponsored_until`, le build retire badge et priorités sans action manuelle',
+        '(rebuild hebdo planifié dans deploy.yml).',
       ].join('\n'),
       draft: false,
     }),
